@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "a-arte-da-guerra",
+    "title": "A Arte da Guerra",
+    "author": "Sun Tzu",
+    "category": "Estrat\u00e9gia",
+    "publishedAt": "2026-01-05T12:00:00.000Z",
+    "palette": ["#102A43", "#D64545", "#F6C85F"],
+    "chapters": [
+      {
+        "title": "Vencer antes do confronto",
+        "text": "A melhor estrat\u00e9gia reduz o conflito antes que ele comece. Conhecer o objetivo, os recursos e o terreno permite escolher batalhas que realmente importam. Preparar alternativas e compreender o outro lado transforma incerteza em decis\u00f5es conscientes."
+      },
+      {
+        "title": "Adapta\u00e7\u00e3o e lideran\u00e7a",
+        "text": "Planos s\u00e3o pontos de partida, n\u00e3o pris\u00f5es. Uma lideran\u00e7a eficaz observa mudan\u00e7as, comunica prioridades e ajusta o ritmo sem perder o prop\u00f3sito. Agilidade, disciplina e uso cuidadoso de informa\u00e7\u00e3o evitam desperd\u00edcios."
+      }
+    ]
+  },
+  {
+    "slug": "meditacoes",
+    "title": "Medita\u00e7\u00f5es",
+    "author": "Marco Aur\u00e9lio",
+    "category": "Filosofia",
+    "publishedAt": "2026-01-04T12:00:00.000Z",
+    "palette": ["#2D3142", "#7D8CC4", "#EAE8FF"],
+    "chapters": [
+      {
+        "title": "Governar a pr\u00f3pria resposta",
+        "text": "Nem tudo depende de n\u00f3s, mas nossa interpreta\u00e7\u00e3o e nossa conduta podem ser treinadas. Separar fatos de julgamentos reduz rea\u00e7\u00f5es impulsivas. O foco retorna ao que pode ser feito agora, com justi\u00e7a e serenidade."
+      },
+      {
+        "title": "Dever, tempo e comunidade",
+        "text": "A vida \u00e9 breve e ganha sentido no servi\u00e7o ao bem comum. Cumprir o dever cotidiano, aceitar a mudan\u00e7a e tratar outras pessoas com humanidade formam uma disciplina pr\u00e1tica. Cada a\u00e7\u00e3o pode expressar o car\u00e1ter que desejamos cultivar."
+      }
+    ]
+  },
+  {
+    "slug": "como-um-homem-pensa",
+    "title": "Como um Homem Pensa",
+    "author": "James Allen",
+    "category": "Desenvolvimento pessoal",
+    "publishedAt": "2026-01-03T12:00:00.000Z",
+    "palette": ["#19323C", "#A93F55", "#F3F7F0"],
+    "chapters": [
+      {
+        "title": "Pensamento e car\u00e1ter",
+        "text": "Pensamentos repetidos influenciam escolhas e, com o tempo, moldam h\u00e1bitos. Observar a vida mental ajuda a substituir padr\u00f5es autom\u00e1ticos por inten\u00e7\u00f5es coerentes. Mudan\u00e7a duradoura nasce da pr\u00e1tica, n\u00e3o apenas do desejo."
+      },
+      {
+        "title": "Prop\u00f3sito e serenidade",
+        "text": "Um prop\u00f3sito claro organiza energia e aten\u00e7\u00e3o. Obst\u00e1culos deixam de ser desculpas e se tornam informa\u00e7\u00e3o para ajustar o caminho. Serenidade \u00e9 apresentada como resultado de autoconsci\u00eancia, paci\u00eancia e responsabilidade."
+      }
+    ]
+  },
+  {
+    "slug": "autobiografia-benjamin-franklin",
+    "title": "Autobiografia de Benjamin Franklin",
+    "author": "Benjamin Franklin",
+    "category": "Biografia",
+    "publishedAt": "2026-01-02T12:00:00.000Z",
+    "palette": ["#283618", "#BC6C25", "#FEFAE0"],
+    "chapters": [
+      {
+        "title": "Aprender fazendo",
+        "text": "Curiosidade, leitura e experimenta\u00e7\u00e3o sustentam uma trajet\u00f3ria de aprendizado cont\u00ednuo. Franklin descreve como trabalho, escrita e colabora\u00e7\u00e3o ampliaram suas oportunidades. O progresso aparece como soma de iniciativas pequenas e persistentes."
+      },
+      {
+        "title": "Virtudes como sistema",
+        "text": "Melhorar o car\u00e1ter exige mais que boas inten\u00e7\u00f5es. Registrar comportamentos, concentrar-se em uma virtude por vez e revisar resultados cria um ciclo de pr\u00e1tica. O m\u00e9todo admite falhas e valoriza a retomada constante."
+      }
+    ]
+  },
+  {
+    "slug": "o-principe",
+    "title": "O Pr\u00edncipe",
+    "author": "Nicolau Maquiavel",
+    "category": "Lideran\u00e7a",
+    "publishedAt": "2026-01-01T12:00:00.000Z",
+    "palette": ["#3D405B", "#E07A5F", "#F4F1DE"],
+    "chapters": [
+      {
+        "title": "Poder e realidade",
+        "text": "Liderar requer observar como pessoas e institui\u00e7\u00f5es realmente agem, sem confundir desejo com evid\u00eancia. Autoridade depende de contexto, alian\u00e7as e capacidade de responder a crises. Decis\u00f5es devem considerar efeitos imediatos e estabilidade futura."
+      },
+      {
+        "title": "Fortuna, habilidade e reputa\u00e7\u00e3o",
+        "text": "Circunst\u00e2ncias imprevis\u00edveis limitam qualquer plano, mas preparo e flexibilidade ampliam a margem de a\u00e7\u00e3o. A reputa\u00e7\u00e3o influencia coopera\u00e7\u00e3o e resist\u00eancia. O texto convida a examinar criticamente os custos \u00e9ticos do poder."
+      }
+    ]
+  }
+]

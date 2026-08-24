@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200" role="img" aria-label="Imported book placeholder">
+  <rect width="800" height="1200" fill="#162A3A"/>
+  <path d="M120 210h560v760H120z" fill="#F5F0E8"/>
+  <path d="M180 330h440M180 430h360M180 530h410M180 630h300" stroke="#476C7D" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="590" cy="860" r="92" fill="#E96B52"/>
+  <path d="M590 812v96M542 860h96" stroke="#F5F0E8" stroke-width="24" stroke-linecap="round"/>
+</svg>

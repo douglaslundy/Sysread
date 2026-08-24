@@ -1,0 +1,95 @@
+import { createHash } from "node:crypto";
+import { Types } from "mongoose";
+import type { JobHandler } from "../../jobs/application/types";
+import { JobExecutionError } from "../../jobs/application/job-runner";
+import { ChapterModel } from "../../catalog/infrastructure/chapter.model";
+import { ContentModel } from "../../catalog/infrastructure/content.model";
+import type { PrivateObjectStorage } from "../application/types";
+import { parsePdf, PdfParseError } from "../domain/pdf-parser";
+import { cleanupText } from "../domain/text-cleanup";
+
+function countWords(text: string) {
+  return text.trim().split(/\s+/u).filter(Boolean).length;
+}
+
+function hash(text: string) {
+  return createHash("sha256").update(text, "utf8").digest("hex");
+}
+
+export function createPdfImportHandler(storage: PrivateObjectStorage): JobHandler {
+  return async (job, context) => {
+    const contentId = new Types.ObjectId(job.subjectId);
+    const ownerId = new Types.ObjectId(job.ownerId);
+    const content = await ContentModel.findOne({
+      _id: contentId,
+      ownerId,
+      sourceType: "upload_pdf",
+    }).exec();
+    if (!content) {
+      throw new JobExecutionError("CONTENT_NOT_FOUND", false, "The uploaded content no longer exists.");
+    }
+    const storageKey = content.sourceMetadata.storageKey;
+    if (typeof storageKey !== "string") {
+      throw new JobExecutionError("STORAGE_KEY_MISSING", false, "The private source file is unavailable.");
+    }
+
+    await ContentModel.updateOne(
+      { _id: contentId, ownerId },
+      { $set: { processingStatus: "processing" } },
+    ).exec();
+    await context.reportProgress(10, "READING_PRIVATE_SOURCE");
+
+    let bytes: Uint8Array;
+    try {
+      bytes = await storage.get(storageKey);
+    } catch {
+      throw new JobExecutionError("STORAGE_READ_FAILED", true, "The private source could not be read.");
+    }
+    await context.reportProgress(30, "PARSING_PDF");
+
+    let parsed;
+    try {
+      parsed = await parsePdf(bytes);
+    } catch (error) {
+      if (error instanceof PdfParseError) {
+        throw new JobExecutionError(error.code, false, error.message);
+      }
+      throw error;
+    }
+    await context.reportProgress(75, "SAVING_CHAPTERS");
+
+    for (const [order, chapter] of parsed.chapters.entries()) {
+      const cleanedText = cleanupText(chapter.text, content.cleanupLevel);
+      await ChapterModel.updateOne(
+        { contentId, order },
+        {
+          $set: {
+            normalizedTextHash: hash(cleanedText),
+            originalText: cleanedText,
+            sourceText: chapter.text,
+            schemaVersion: 1,
+            simplifiedVariants: [],
+            title: chapter.title,
+            wordCount: countWords(cleanedText),
+          },
+        },
+        { upsert: true },
+      ).exec();
+    }
+    await ChapterModel.deleteMany({ contentId, order: { $gte: parsed.chapters.length } }).exec();
+    await ContentModel.updateOne(
+      { _id: contentId, ownerId },
+      {
+        $set: {
+          ...(parsed.author ? { author: parsed.author.slice(0, 240) } : {}),
+          ...(parsed.title ? { title: parsed.title.slice(0, 500) } : {}),
+          coverUrl: "/covers/import-placeholder.svg",
+          processingStatus: "ready",
+          "sourceMetadata.pageCount": parsed.pageCount,
+          "sourceMetadata.parserVersion": "pdf-v1",
+        },
+      },
+    ).exec();
+    await context.reportProgress(95, "FINALIZING");
+  };
+}

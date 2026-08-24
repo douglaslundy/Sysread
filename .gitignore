@@ -1,0 +1,14 @@
+node_modules/
+.next/
+*.tsbuildinfo
+coverage/
+.env
+.env.local
+*.log
+.DS_Store
+
+.data/
+
+test-results/
+playwright-report/
+.deploy-temp/

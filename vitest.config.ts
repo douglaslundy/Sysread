@@ -1,0 +1,11 @@
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: { exclude: ["tests/e2e/**", "node_modules/**", ".next/**"], testTimeout: 15_000 },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
+});
