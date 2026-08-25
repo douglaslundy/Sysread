@@ -28,7 +28,7 @@ function mockReader(savedProgress: unknown = null) {
   return vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = String(input);
     if (url.endsWith("/reading-settings")) {
-      return response({ settings: { autoAdvance: false, boostMode: false, focusPresentation: "orp", fontFamily: "serif", fontSize: "large", horizontalDirection: "left-to-right", verticalDirection: "up", wordsPerBlock: 1, wpm: 350 } });
+      return response({ settings: { autoAdvance: false, boostMode: false, focusPresentation: "orp", fontFamily: "serif", fontSize: "large", horizontalDirection: "left-to-right", navigationWordStep: 5, verticalDirection: "up", wordsPerBlock: 1, wpm: 350 } });
     }
     if (url.endsWith("/progress") && init?.method === "PUT") {
       return response({ progress: { revision: 1 } });

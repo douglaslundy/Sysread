@@ -20,6 +20,7 @@ const settings = {
   fontFamily: "serif" as const,
   fontSize: "large" as const,
   horizontalDirection: "left-to-right" as const,
+  navigationWordStep: 5 as const,
   wordsPerBlock: 1 as const,
   wpm: 350,
   verticalDirection: "up" as const,
@@ -55,6 +56,7 @@ describe("reading settings dialog", () => {
     await user.click(screen.getByRole("switch", { name: /^Horizontal direction/ }));
     await user.click(screen.getByRole("button", { name: "Vertical flow" }));
     await user.click(screen.getByRole("switch", { name: /^Vertical direction/ }));
+    await user.click(screen.getByRole("button", { name: "10" }));
     await user.click(screen.getByRole("button", { name: "Light" }));
     await user.click(screen.getByRole("button", { name: "Save settings" }));
 
@@ -71,6 +73,7 @@ describe("reading settings dialog", () => {
     expect(JSON.parse(String(settingsCall?.[1]?.body))).toEqual(expect.objectContaining({
       focusPresentation: "vertical",
       horizontalDirection: "right-to-left",
+      navigationWordStep: 10,
       verticalDirection: "down",
     }));
   });

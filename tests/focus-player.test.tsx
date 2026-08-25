@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 import { NextIntlClientProvider } from "next-intl";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import en from "../src/messages/en.json";
@@ -20,6 +20,7 @@ const settings = {
   fontFamily: "serif" as const,
   fontSize: "large" as const,
   horizontalDirection: "left-to-right" as const,
+  navigationWordStep: 5 as const,
   wordsPerBlock: 1 as const,
   wpm: 350,
   verticalDirection: "up" as const,
@@ -37,8 +38,8 @@ describe("focus player", () => {
       <NextIntlClientProvider locale="en" messages={en}>
         <FocusPlayer
           chapter={{
-            id: "chapter-1", order: 0, text: "alpha beta gamma", textVersionHash: "hash",
-            title: "Chapter", variant: "original", wordCount: 3,
+            id: "chapter-1", order: 0, text: "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda", textVersionHash: "hash",
+            title: "Chapter", variant: "original", wordCount: 11,
           }}
           initialWordIndex={0}
           onCheckpoint={onCheckpoint}
@@ -51,12 +52,16 @@ describe("focus player", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("alpha");
     await user.click(screen.getByRole("button", { name: "Next words" }));
-    expect(screen.getByRole("status")).toHaveTextContent("beta");
-    await waitFor(() => expect(onCheckpoint).toHaveBeenCalledWith(1));
+    expect(screen.getByRole("status")).toHaveTextContent("zeta");
+    await waitFor(() => expect(onCheckpoint).toHaveBeenCalledWith(5));
+
+    await user.click(screen.getByRole("button", { name: "Previous words" }));
+    expect(screen.getByRole("status")).toHaveTextContent("alpha");
+    await waitFor(() => expect(onCheckpoint).toHaveBeenCalledWith(0));
 
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).toHaveBeenCalled();
-    expect(onCheckpoint).toHaveBeenLastCalledWith(1);
+    expect(onCheckpoint).toHaveBeenLastCalledWith(0);
   });
 
   it("keeps a three-word block on one accessible line with preserved spaces", () => {
@@ -75,6 +80,40 @@ describe("focus player", () => {
     const block = screen.getByRole("status", { name: "alpha beta gamma" });
     expect(block).toHaveTextContent("alpha beta gamma");
     expect(block).toHaveStyle({ fontSize: "88px" });
+  });
+
+  it("pauses an accelerated reading and resets boost speed after an arrow seek", async () => {
+    const user = userEvent.setup();
+    const onCheckpoint = vi.fn(async () => undefined);
+    let frame: FrameRequestCallback | undefined;
+    let now = 1_000;
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+    vi.stubGlobal("requestAnimationFrame", vi.fn((callback: FrameRequestCallback) => { frame = callback; return 1; }));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const text = Array.from({ length: 500 }, (_, index) => `word${index}`).join(" ");
+
+    render(
+      <NextIntlClientProvider locale="en" messages={en}>
+        <FocusPlayer
+          chapter={{ id: "chapter-boost", order: 0, text, textVersionHash: "hash", title: "Chapter", variant: "original", wordCount: 500 }}
+          initialWordIndex={0}
+          onCheckpoint={onCheckpoint}
+          onClose={vi.fn()}
+          onComplete={vi.fn()}
+          settings={{ ...settings, boostMode: true }}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    now = 61_000;
+    act(() => frame?.(now));
+    expect(screen.getByText("361 WPM")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Next words" }));
+    expect(screen.getByText("350 WPM")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Play" })).toBeVisible();
+    expect(onCheckpoint).toHaveBeenCalled();
   });
 
   it.each([

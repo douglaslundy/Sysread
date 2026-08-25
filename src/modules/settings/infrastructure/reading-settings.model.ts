@@ -8,6 +8,7 @@ export interface ReadingSettings {
   fontFamily: "serif" | "sans" | "mono";
   fontSize: "small" | "medium" | "large" | "extra-large";
   horizontalDirection: "left-to-right" | "right-to-left";
+  navigationWordStep: 3 | 5 | 10;
   schemaVersion: number;
   updatedAt: Date;
   userId: Types.ObjectId;
@@ -34,7 +35,8 @@ export const readingSettingsSchema = new Schema<ReadingSettings>(
       type: String,
     },
     horizontalDirection: { default: "left-to-right", enum: ["left-to-right", "right-to-left"], required: true, type: String },
-    schemaVersion: { default: 3, min: 1, required: true, type: Number },
+    navigationWordStep: { default: 5, enum: [3, 5, 10], required: true, type: Number },
+    schemaVersion: { default: 4, min: 1, required: true, type: Number },
     userId: {
       ref: "User",
       required: true,

@@ -5,6 +5,7 @@ export interface ReadingPreferences {
   fontFamily: "serif" | "sans" | "mono";
   fontSize: "small" | "medium" | "large" | "extra-large";
   horizontalDirection: "left-to-right" | "right-to-left";
+  navigationWordStep: 3 | 5 | 10;
   wordsPerBlock: 1 | 2 | 3;
   wpm: number;
   verticalDirection: "up" | "down";

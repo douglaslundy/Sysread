@@ -60,7 +60,7 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
   const [focusResume, setFocusResume] = useState<{ chapterId: string; paragraphIndex: number; wordIndex: number } | null>(null);
   const [focusSettings, setFocusSettings] = useState<ReadingPreferences>({
     autoAdvance: false, boostMode: false, focusPresentation: "orp", fontFamily: "serif",
-    fontSize: "large", horizontalDirection: "left-to-right", verticalDirection: "up", wordsPerBlock: 1, wpm: 350,
+    fontSize: "large", horizontalDirection: "left-to-right", navigationWordStep: 5, verticalDirection: "up", wordsPerBlock: 1, wpm: 350,
   });
   const applySettings = useCallback((settings: ReadingPreferences) => {
     setFocusSettings(settings);

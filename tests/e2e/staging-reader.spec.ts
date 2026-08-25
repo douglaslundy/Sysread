@@ -16,6 +16,7 @@ async function mockReaderApi(page: Page) {
           fontFamily: "serif",
           fontSize: "large",
           horizontalDirection: "left-to-right",
+          navigationWordStep: 5,
           wordsPerBlock: 1,
           wpm: 350,
           verticalDirection: "up",

@@ -253,6 +253,8 @@
     "continuousMode": "Continuous",
     "readingModeDescription": "By paragraph pauses at the end; continuous advances automatically to the end of the text.",
     "wordsPerBlock": "Words per block",
+    "navigationWordStep": "Words per arrow press",
+    "navigationWordStepDescription": "Using an arrow pauses reading and moves backward or forward by this many words.",
     "cleanup": "Cleanup",
     "cleanupOption": {
       "disabled": "Disabled",

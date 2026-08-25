@@ -16,6 +16,7 @@ const defaults: ReadingPreferences = {
   fontFamily: "serif",
   fontSize: "large",
   horizontalDirection: "left-to-right",
+  navigationWordStep: 5,
   wordsPerBlock: 1,
   wpm: 350,
   verticalDirection: "up",
@@ -115,6 +116,11 @@ export function ReadingSettingsDialog({ allowCleanup, contentId, initialCleanup,
       <fieldset>
         <legend>{t("wordsPerBlock")}</legend>
         <SegmentedControl ariaLabel={t("wordsPerBlock")} onValueChange={(value) => setSettings((current) => ({ ...current, wordsPerBlock: Number(value) as 1 | 2 | 3 }))} options={[1, 2, 3].map((value) => ({ label: String(value), value: String(value) }))} value={String(settings.wordsPerBlock)} />
+      </fieldset>
+      <fieldset>
+        <legend>{t("navigationWordStep")}</legend>
+        <SegmentedControl ariaLabel={t("navigationWordStep")} onValueChange={(value) => setSettings((current) => ({ ...current, navigationWordStep: Number(value) as 3 | 5 | 10 }))} options={[3, 5, 10].map((value) => ({ label: String(value), value: String(value) }))} value={String(settings.navigationWordStep)} />
+        <small>{t("navigationWordStepDescription")}</small>
       </fieldset>
       {allowCleanup ? (
         <fieldset>

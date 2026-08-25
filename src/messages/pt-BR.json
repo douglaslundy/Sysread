@@ -234,6 +234,8 @@
     "continuousMode": "Contínua",
     "readingModeDescription": "Por parágrafo pausa ao final; contínua avança automaticamente até o fim do texto.",
     "wordsPerBlock": "Palavras por bloco",
+    "navigationWordStep": "Palavras por toque nas setas",
+    "navigationWordStepDescription": "Ao usar uma seta, a leitura pausa e recua ou avança esta quantidade de palavras.",
     "cleanup": "Limpeza",
     "cleanupOption": {
       "disabled": "Desativado",

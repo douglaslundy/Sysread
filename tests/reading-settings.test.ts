@@ -6,7 +6,7 @@ describe("reading settings", () => {
   it("uses the authenticated user id for global settings", async () => {
     const defaults: ReadingPreferences = {
       autoAdvance: false, boostMode: false, focusPresentation: "orp", fontFamily: "serif",
-      fontSize: "large", horizontalDirection: "left-to-right", verticalDirection: "up", wordsPerBlock: 1, wpm: 350,
+      fontSize: "large", horizontalDirection: "left-to-right", navigationWordStep: 5, verticalDirection: "up", wordsPerBlock: 1, wpm: 350,
     };
     const repository: ReadingSettingsRepository = {
       getOrCreate: vi.fn(async () => defaults),

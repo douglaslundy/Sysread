@@ -14,6 +14,7 @@ const updateSchema = z.object({
   fontFamily: z.enum(["serif", "sans", "mono"]).optional(),
   fontSize: z.enum(["small", "medium", "large", "extra-large"]).optional(),
   horizontalDirection: z.enum(["left-to-right", "right-to-left"]).optional(),
+  navigationWordStep: z.union([z.literal(3), z.literal(5), z.literal(10)]).optional(),
   wordsPerBlock: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   wpm: z.number().int().min(100).max(1000).optional(),
   verticalDirection: z.enum(["up", "down"]).optional(),

@@ -10,6 +10,7 @@ const defaults: ReadingPreferences = {
   fontFamily: "serif",
   fontSize: "large",
   horizontalDirection: "left-to-right",
+  navigationWordStep: 5,
   wordsPerBlock: 1,
   wpm: 350,
   verticalDirection: "up",
@@ -23,6 +24,7 @@ function map(settings: ReadingSettings): ReadingPreferences {
     fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     horizontalDirection: settings.horizontalDirection ?? defaults.horizontalDirection,
+    navigationWordStep: settings.navigationWordStep ?? defaults.navigationWordStep,
     wordsPerBlock: settings.wordsPerBlock,
     wpm: settings.wpm,
     verticalDirection: settings.verticalDirection ?? defaults.verticalDirection,
@@ -35,7 +37,7 @@ export class MongoReadingSettingsRepository implements ReadingSettingsRepository
     await connectToMongo();
     const settings = await ReadingSettingsModel.findOneAndUpdate(
       { userId: new Types.ObjectId(userId) },
-      { $setOnInsert: { ...defaults, schemaVersion: 3 } },
+      { $setOnInsert: { ...defaults, schemaVersion: 4 } },
       { returnDocument: "after", upsert: true },
     ).exec();
     return map(settings);
@@ -45,7 +47,7 @@ export class MongoReadingSettingsRepository implements ReadingSettingsRepository
     await connectToMongo();
     const settings = await ReadingSettingsModel.findOneAndUpdate(
       { userId: new Types.ObjectId(userId) },
-      { $set: update, $setOnInsert: { schemaVersion: 3 } },
+      { $set: update, $setOnInsert: { schemaVersion: 4 } },
       { returnDocument: "after", runValidators: true, upsert: true },
     ).exec();
     return map(settings);

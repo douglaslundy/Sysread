@@ -19,14 +19,10 @@ export function FocusPlayer({ autoPlay = false, chapter, initialWordIndex, onChe
   settings: ReadingPreferences;
 }) {
   const t = useTranslations("Focus");
-  const blocks = useMemo(
-    () => groupTokens(tokenizeText(chapter.text), settings.wordsPerBlock),
-    [chapter.text, settings.wordsPerBlock],
-  );
-  const initialIndex = Math.max(0, blocks.findIndex((block) =>
-    initialWordIndex >= block.wordIndex &&
-    initialWordIndex < block.wordIndex + block.tokens.length
-  ));
+  const tokens = useMemo(() => tokenizeText(chapter.text), [chapter.text]);
+  const initialStart = Math.min(Math.max(0, initialWordIndex), Math.max(0, tokens.length - 1));
+  const [blocks, setBlocks] = useState(() => groupTokens(tokens.slice(initialStart), settings.wordsPerBlock));
+  const initialIndex = 0;
   const [index, setIndex] = useState(initialIndex);
   const [playing, setPlaying] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -38,6 +34,7 @@ export function FocusPlayer({ autoPlay = false, chapter, initialWordIndex, onChe
   const afterRef = useRef<HTMLSpanElement>(null);
   const motionRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef(new DriftCorrectedClock(initialIndex, blocks.length));
+  const autoPlayStartedRef = useRef(false);
   const startedAtRef = useRef(0);
   const indexRef = useRef(initialIndex);
   useEffect(() => {
@@ -55,7 +52,8 @@ export function FocusPlayer({ autoPlay = false, chapter, initialWordIndex, onChe
     blockDurationMs(blocks[blockIndex], effectiveWpm()), [blocks, effectiveWpm]);
 
   useEffect(() => {
-    if (!autoPlay || !blocks.length) return;
+    if (!autoPlay || !blocks.length || autoPlayStartedRef.current) return;
+    autoPlayStartedRef.current = true;
     const timer = window.setTimeout(() => {
       startedAtRef.current = performance.now();
       clockRef.current.play(startedAtRef.current, durationAt);
@@ -82,13 +80,23 @@ export function FocusPlayer({ autoPlay = false, chapter, initialWordIndex, onChe
   }, [durationAt, pause, playing]);
 
   const seek = useCallback((direction: -1 | 1) => {
-    const next = Math.min(Math.max(0, indexRef.current + direction), Math.max(0, blocks.length - 1));
-    clockRef.current.seek(next);
-    setIndex(next);
+    const currentWordIndex = blocks[indexRef.current]?.wordIndex ?? 0;
+    const nextWordIndex = Math.min(
+      Math.max(0, currentWordIndex + direction * settings.navigationWordStep),
+      Math.max(0, tokens.length - 1),
+    );
+    const nextBlocks = groupTokens(tokens.slice(nextWordIndex), settings.wordsPerBlock);
+    clockRef.current.pause();
+    clockRef.current = new DriftCorrectedClock(0, nextBlocks.length);
+    indexRef.current = 0;
+    startedAtRef.current = 0;
+    setElapsedMs(0);
+    setBlocks(nextBlocks);
+    setIndex(0);
     setPlaying(false);
-    const block = blocks[next];
+    const block = nextBlocks[0];
     if (block) void onCheckpoint(block.wordIndex);
-  }, [blocks, onCheckpoint]);
+  }, [blocks, onCheckpoint, settings.navigationWordStep, settings.wordsPerBlock, tokens]);
 
   useEffect(() => {
     if (!playing) return;
@@ -140,7 +148,7 @@ export function FocusPlayer({ autoPlay = false, chapter, initialWordIndex, onChe
 
   const block = blocks[index];
   const orp = block ? blockOrp(block) : { after: "", before: "", pivot: "", pivotIndex: 0 };
-  const percent = blocks.length ? ((index + 1) / blocks.length) * 100 : 0;
+  const percent = block && tokens.length ? ((block.wordIndex + block.tokens.length) / tokens.length) * 100 : 0;
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
