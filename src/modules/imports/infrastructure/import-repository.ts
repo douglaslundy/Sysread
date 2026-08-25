@@ -68,6 +68,7 @@ export class MongoImportRepository implements ImportRepository {
       schemaVersion: 1,
       sourceMetadata: {
         byteSize: input.byteSize,
+        contentOnly: input.contentOnly,
         sha256: input.sha256,
         storageKey: input.storageKey,
         visibility: "private",

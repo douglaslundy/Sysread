@@ -70,6 +70,7 @@ export class UploadImportService {
 
   async create(input: {
     bytes: Uint8Array;
+    contentOnly?: boolean;
     fileName: string;
     ownerId: string;
   }): Promise<UploadedImport> {
@@ -94,7 +95,8 @@ export class UploadImportService {
     }
 
     const sha256 = createHash("sha256").update(input.bytes).digest("hex");
-    const idempotencyKey = `upload:${input.ownerId}:${sha256}`;
+    const contentOnly = input.contentOnly === true;
+    const idempotencyKey = `upload:${input.ownerId}:${sha256}:${contentOnly ? "content-only" : "complete"}`;
     const existing = await this.repository.findByIdempotencyKey(
       input.ownerId,
       idempotencyKey,
@@ -138,6 +140,7 @@ export class UploadImportService {
       stored = true;
       const result = await this.repository.create({
         byteSize: input.bytes.length,
+        contentOnly,
         idempotencyKey,
         kind,
         ownerId: input.ownerId,

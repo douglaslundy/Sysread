@@ -41,4 +41,12 @@ describe("reader responsive layout", () => {
     expect(css).toContain(".audio-player{display:grid;min-width:0;max-width:100%");
     expect(css).toContain('.audio-player select,.audio-player input[type="url"]{display:block;width:100%;min-width:0;max-width:100%');
   });
+
+  it("contains long book and chapter titles inside the left panel", () => {
+    const css = readFileSync("src/app/globals.css", "utf8");
+    expect(css).toContain(".reader-chapters,.reader-focus { position:relative; min-width:0; max-width:100%");
+    expect(css).toContain(".reader-chapters h1 { max-width:100%");
+    expect(css).toContain("overflow-wrap:anywhere; word-break:break-word");
+    expect(css).toContain(".reader-chapter-title { min-width:0; flex:1 1 auto");
+  });
 });

@@ -87,6 +87,24 @@ describe("secure upload import", () => {
     );
   });
 
+  it("persists the content-only choice and gives it a distinct idempotency identity", async () => {
+    const { repository, storage } = dependencies();
+    await service(repository, storage).create({
+      bytes: pdfBytes(),
+      contentOnly: true,
+      fileName: "clean.pdf",
+      ownerId,
+    });
+
+    expect(repository.findByIdempotencyKey).toHaveBeenCalledWith(
+      ownerId,
+      expect.stringContaining(":content-only"),
+    );
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ contentOnly: true }),
+    );
+  });
+
   it("recognizes a conformant EPUB container instead of trusting extension", () => {
     expect(uploadFileInternals.detectUploadKind(epubBytes())).toBe("epub");
     expect(

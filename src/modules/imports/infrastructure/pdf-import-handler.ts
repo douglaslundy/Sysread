@@ -5,6 +5,7 @@ import { JobExecutionError } from "../../jobs/application/job-runner";
 import { ChapterModel } from "../../catalog/infrastructure/chapter.model";
 import { ContentModel } from "../../catalog/infrastructure/content.model";
 import type { PrivateObjectStorage } from "../application/types";
+import { contentOnlyChapters } from "../domain/content-only";
 import { parsePdf, PdfParseError } from "../domain/pdf-parser";
 import { cleanupText } from "../domain/text-cleanup";
 
@@ -57,8 +58,11 @@ export function createPdfImportHandler(storage: PrivateObjectStorage): JobHandle
       throw error;
     }
     await context.reportProgress(75, "SAVING_CHAPTERS");
+    const chapters = content.sourceMetadata.contentOnly === true
+      ? contentOnlyChapters(parsed.chapters)
+      : parsed.chapters;
 
-    for (const [order, chapter] of parsed.chapters.entries()) {
+    for (const [order, chapter] of chapters.entries()) {
       const cleanedText = cleanupText(chapter.text, content.cleanupLevel);
       await ChapterModel.updateOne(
         { contentId, order },
@@ -76,7 +80,7 @@ export function createPdfImportHandler(storage: PrivateObjectStorage): JobHandle
         { upsert: true },
       ).exec();
     }
-    await ChapterModel.deleteMany({ contentId, order: { $gte: parsed.chapters.length } }).exec();
+    await ChapterModel.deleteMany({ contentId, order: { $gte: chapters.length } }).exec();
     await ContentModel.updateOne(
       { _id: contentId, ownerId },
       {

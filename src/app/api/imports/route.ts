@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       },
     ).create({
       bytes: new Uint8Array(await file.arrayBuffer()),
+      contentOnly: form?.get("contentOnly") === "true",
       fileName: file.name,
       ownerId: user.id,
     });

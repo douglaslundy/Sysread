@@ -122,6 +122,8 @@
     "urlTab": "Article URL",
     "fileLabel": "Choose a file",
     "fileHint": "PDF, EPUB or MOBI, subject to your private storage limit.",
+    "contentOnly": "Import content only",
+    "contentOnlyDescription": "Removes identifiable contents pages, menus, glossaries, indexes and bibliographic references.",
     "urlLabel": "Public article URL",
     "submitFile": "Upload and process",
     "submitUrl": "Import article",
@@ -197,6 +199,17 @@
     },
     "paragraphComplete": "Paragraph complete.",
     "readingComplete": "Reading complete."
+    ,"manageContent": "Edit content"
+    ,"editContentTitle": "Edit chapter"
+    ,"chapterTitleLabel": "Chapter title"
+    ,"chapterTextLabel": "Chapter text"
+    ,"saveContent": "Save changes"
+    ,"cancelEdit": "Cancel"
+    ,"deleteContent": "Delete material"
+    ,"deleteContentConfirm": "Permanently delete this book, PDF or article and all related progress?"
+    ,"contentSaved": "Content saved."
+    ,"contentSaveError": "The content could not be saved."
+    ,"contentDeleteError": "The material could not be deleted."
   },
   "ReadingSettings": {
     "open": "Settings",

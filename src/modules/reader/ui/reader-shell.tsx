@@ -12,6 +12,7 @@ import type { ReadingCheckpoint } from "../application/progress-types";
 import type { ReaderChapter, ReaderChapterSummary, ReaderContent, TextVariant } from "../application/types";
 import { paragraphAnchor, splitParagraphs, wordIndexForParagraph, type ReaderFont, type ReaderFontSize } from "../domain/text-navigation";
 import { useReadingProgress } from "./use-reading-progress";
+import { ContentManagement } from "./content-management";
 
 type ReaderState = {
   chapter: ReaderChapter | null;
@@ -158,6 +159,19 @@ export function ReaderShell({ contentId }: { contentId: string }) {
     if (target) void selectChapter(target.id, state.chapter?.variant ?? "original");
   };
 
+  const applyChapterEdit = (chapter: ReaderChapter) => {
+    setState((current) => ({
+      ...current,
+      chapter,
+      chapters: current.chapters.map((item) => item.id === chapter.id
+        ? { id: chapter.id, order: chapter.order, title: chapter.title, wordCount: chapter.wordCount }
+        : item),
+      progress: null,
+    }));
+    setFocusResume(null);
+    setCurrentAnchor("");
+  };
+
   const focusChapter = state.chapter && paragraphs[focusParagraphIndex]
     ? { ...state.chapter, text: paragraphs[focusParagraphIndex], title: `${state.chapter.title} · ${focusParagraphIndex + 1}/${paragraphs.length}` }
     : null;
@@ -222,7 +236,7 @@ export function ReaderShell({ contentId }: { contentId: string }) {
               {state.chapters.map((chapter) => (
                 <li key={chapter.id}>
                   <button aria-current={state.chapter?.id === chapter.id ? "location" : undefined} onClick={() => void selectChapter(chapter.id, state.chapter?.variant ?? "original")}>
-                    <span>{chapter.order + 1}</span>{chapter.title}
+                    <span>{chapter.order + 1}</span><span className="reader-chapter-title">{chapter.title}</span>
                   </button>
                 </li>
               ))}
@@ -276,6 +290,9 @@ export function ReaderShell({ contentId }: { contentId: string }) {
               initialCleanup={state.content.cleanupLevel}
               onApply={applySettings}
             />
+          ) : null}
+          {state.content?.kind === "personal" && state.chapter?.variant === "original" ? (
+            <ContentManagement chapter={state.chapter} contentId={contentId} onUpdated={applyChapterEdit} />
           ) : null}
         </div>
 

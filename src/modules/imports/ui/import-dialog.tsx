@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Modal, Tabs } from "@/components/ui";
+import { Button, Modal, Tabs, Toggle } from "@/components/ui";
 import { AuthRequiredActions } from "@/modules/auth/ui/auth-required-actions";
 
 type JobState = {
@@ -18,6 +18,7 @@ export function ImportDialog({ authenticated }: { authenticated: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [contentOnly, setContentOnly] = useState(false);
   const [url, setUrl] = useState("");
   const [job, setJob] = useState<JobState | null>(null);
   const [error, setError] = useState("");
@@ -73,6 +74,7 @@ export function ImportDialog({ authenticated }: { authenticated: boolean }) {
     if (!file) return;
     const body = new FormData();
     body.set("file", file);
+    body.set("contentOnly", String(contentOnly));
     await submit("/api/imports", { body, method: "POST" });
   }
 
@@ -126,6 +128,7 @@ export function ImportDialog({ authenticated }: { authenticated: boolean }) {
                     <form className="import-form" onSubmit={submitFile}>
                       <label>{t("fileLabel")}<input accept=".pdf,.epub,.mobi,application/pdf,application/epub+zip,application/x-mobipocket-ebook,application/vnd.amazon.mobi8-ebook" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required type="file" /></label>
                       <small>{t("fileHint")}</small>
+                      <Toggle checked={contentOnly} description={t("contentOnlyDescription")} label={t("contentOnly")} onCheckedChange={setContentOnly} />
                       <Button disabled={submitting || !file} type="submit">{t("submitFile")}</Button>
                     </form>
                   ),

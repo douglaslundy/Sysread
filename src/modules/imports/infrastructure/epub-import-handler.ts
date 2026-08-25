@@ -5,6 +5,7 @@ import { JobExecutionError } from "../../jobs/application/job-runner";
 import { ChapterModel } from "../../catalog/infrastructure/chapter.model";
 import { ContentModel } from "../../catalog/infrastructure/content.model";
 import type { PrivateObjectStorage } from "../application/types";
+import { contentOnlyChapters } from "../domain/content-only";
 import { EpubParseError, parseEpub } from "../domain/epub-parser";
 import { cleanupText } from "../domain/text-cleanup";
 
@@ -52,8 +53,11 @@ export function createEpubImportHandler(storage: PrivateObjectStorage): JobHandl
       throw error;
     }
     await context.reportProgress(70, "SAVING_CHAPTERS");
+    const chapters = content.sourceMetadata.contentOnly === true
+      ? contentOnlyChapters(parsed.chapters)
+      : parsed.chapters;
 
-    for (const [order, chapter] of parsed.chapters.entries()) {
+    for (const [order, chapter] of chapters.entries()) {
       const cleanedText = cleanupText(chapter.text, content.cleanupLevel);
       await ChapterModel.updateOne(
         { contentId, order },
@@ -71,7 +75,7 @@ export function createEpubImportHandler(storage: PrivateObjectStorage): JobHandl
         { upsert: true },
       ).exec();
     }
-    await ChapterModel.deleteMany({ contentId, order: { $gte: parsed.chapters.length } }).exec();
+    await ChapterModel.deleteMany({ contentId, order: { $gte: chapters.length } }).exec();
 
     let coverMetadata: Record<string, string> = {};
     if (parsed.cover) {

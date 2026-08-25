@@ -103,6 +103,8 @@
     "urlTab": "URL de artigo",
     "fileLabel": "Escolha um arquivo",
     "fileHint": "PDF, EPUB ou MOBI, sujeito ao limite do seu armazenamento privado.",
+    "contentOnly": "Importar somente o conteúdo",
+    "contentOnlyDescription": "Remove sumário, menus, glossário, índices e referências bibliográficas identificáveis.",
     "urlLabel": "URL pública do artigo",
     "submitFile": "Enviar e processar",
     "submitUrl": "Importar artigo",
@@ -178,6 +180,17 @@
     },
     "paragraphComplete": "Parágrafo concluído.",
     "readingComplete": "Leitura concluída."
+    ,"manageContent": "Editar conteúdo"
+    ,"editContentTitle": "Editar capítulo"
+    ,"chapterTitleLabel": "Título do capítulo"
+    ,"chapterTextLabel": "Texto do capítulo"
+    ,"saveContent": "Salvar alterações"
+    ,"cancelEdit": "Cancelar"
+    ,"deleteContent": "Excluir material"
+    ,"deleteContentConfirm": "Excluir definitivamente este livro, PDF ou artigo e todo o progresso relacionado?"
+    ,"contentSaved": "Conteúdo salvo."
+    ,"contentSaveError": "Não foi possível salvar o conteúdo."
+    ,"contentDeleteError": "Não foi possível excluir o material."
   },
   "ReadingSettings": {
     "open": "Configurações",

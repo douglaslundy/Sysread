@@ -9,9 +9,15 @@ import en from "../src/messages/en.json";
 import { ReaderShell } from "../src/modules/reader/ui/reader-shell";
 import { paragraphAnchor } from "../src/modules/reader/domain/text-navigation";
 
+const push = vi.fn();
+const refresh = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }));
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  push.mockReset();
+  refresh.mockReset();
 });
 
 function response(body: unknown, ok = true) {
@@ -36,6 +42,14 @@ function mockReader(savedProgress: unknown = null) {
     }
     if (url.includes("/chapters/chapter-")) {
       const second = url.includes("chapter-2");
+      if (init?.method === "PATCH") {
+        const update = JSON.parse(String(init.body)) as { text: string; title: string };
+        return response({ chapter: {
+          id: second ? "chapter-2" : "chapter-1", order: second ? 1 : 0,
+          text: update.text, textVersionHash: "edited-hash", title: update.title,
+          variant: "original", wordCount: update.text.split(/\s+/u).length,
+        } });
+      }
       const simplified = url.includes("variant=simplified");
       return response({ chapter: {
         id: second ? "chapter-2" : "chapter-1",
@@ -46,6 +60,9 @@ function mockReader(savedProgress: unknown = null) {
         variant: simplified ? "simplified" : "original",
         wordCount: second ? 3 : 4,
       } });
+    }
+    if (url.endsWith("/api/contents/book-1") && init?.method === "DELETE") {
+      return response({ deleted: true });
     }
     return response({ content: {
       cleanupLevel: "standard", id: "book-1", kind: "personal", processingStatus: "ready",
@@ -143,5 +160,33 @@ describe("reader desktop shell", () => {
       expect(body.paragraphAnchor).toBe(paragraph.id);
       expect(body.revision).toBe(0);
     });
+  });
+
+  it("edits the current imported chapter and can delete the owned material", async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockReader();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderReader();
+
+    await screen.findByText("First paragraph.");
+    await user.click(screen.getByRole("button", { name: "Edit content" }));
+    const title = screen.getByLabelText("Chapter title");
+    const text = screen.getByLabelText("Chapter text");
+    await user.clear(title);
+    await user.type(title, "Edited chapter");
+    await user.clear(text);
+    await user.type(text, "Edited text for reading.");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(await screen.findByText("Edited text for reading.")).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/contents/book-1/chapters/chapter-1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit content" }));
+    await user.click(screen.getByRole("button", { name: "Delete material" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/"));
+    expect(fetchMock).toHaveBeenCalledWith("/api/contents/book-1", { method: "DELETE" });
   });
 });

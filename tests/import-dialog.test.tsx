@@ -31,11 +31,14 @@ describe("import dialog", () => {
     show(true);
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Import" }));
+    await user.click(screen.getByRole("switch", { name: /Import content only/ }));
     await user.upload(screen.getByLabelText("Choose a file"), new File(["%PDF-1.7"], "book.pdf", { type: "application/pdf" }));
     fireEvent.submit(screen.getByRole("button", { name: "Upload and process" }).closest("form")!);
 
     expect(await screen.findByText("Import complete")).toBeVisible();
     expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/imports", expect.objectContaining({ method: "POST" }));
+    const form = fetchMock.mock.calls[0][1]?.body as FormData;
+    expect(form.get("contentOnly")).toBe("true");
     expect(refresh).toHaveBeenCalledOnce();
   });
 
