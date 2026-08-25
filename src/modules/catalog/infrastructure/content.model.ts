@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Model, type Types } from "mongoose";
 
-export type ContentKind = "personal" | "summary";
+export type ContentKind = "personal" | "public" | "summary";
 export type ContentSourceType =
   | "upload_pdf"
   | "upload_epub"
@@ -39,7 +39,7 @@ export const contentSchema = new Schema<Content>(
     },
     coverUrl: { trim: true, type: String },
     kind: {
-      enum: ["personal", "summary"],
+      enum: ["personal", "public", "summary"],
       required: true,
       type: String,
     },
@@ -93,8 +93,8 @@ contentSchema.pre("validate", function validateOwnership() {
     this.invalidate("ownerId", "Private content requires an assigned user.");
   }
 
-  if (this.visibility === "public" && this.ownerId) {
-    this.invalidate("ownerId", "Public content cannot have an assigned user.");
+  if (this.kind === "public" && (!this.ownerId || this.visibility !== "public")) {
+    this.invalidate("ownerId", "User-submitted public content requires its original owner.");
   }
 
   if (

@@ -7,6 +7,7 @@ import { ContentModel } from "../../catalog/infrastructure/content.model";
 import { parseReadableArticle } from "../domain/article-parser";
 import { cleanupText } from "../domain/text-cleanup";
 import { decodeHtml, SafeFetchError, safeFetchHtml } from "./safe-http-fetch";
+import { publishApprovedContent } from "../../publication/application/publication-service";
 
 export function createUrlImportHandler(limits: { maxBytes: number; timeoutMs: number }): JobHandler {
   return async (job, context) => {
@@ -51,6 +52,7 @@ export function createUrlImportHandler(limits: { maxBytes: number; timeoutMs: nu
       ...(article.canonicalUrl ? { "sourceMetadata.canonicalUrl": article.canonicalUrl } : {}),
       "sourceMetadata.parserVersion": "readability-v1",
     } }).exec();
+    await publishApprovedContent(contentId);
     await context.reportProgress(95, "FINALIZING");
   };
 }

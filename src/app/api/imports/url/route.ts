@@ -8,7 +8,7 @@ import { SafeFetchError } from "@/modules/imports/infrastructure/safe-http-fetch
 import { createUrlImport } from "@/modules/imports/infrastructure/url-import-service";
 import { consumeRateLimit, rateLimitResponse } from "@/modules/security/infrastructure/rate-limit";
 
-const schema = z.object({ url: z.string().trim().min(1).max(2048) });
+const schema = z.object({ publicationRequested: z.boolean().optional().default(false), url: z.string().trim().min(1).max(2048) }).strict();
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +18,10 @@ export async function POST(request: Request) {
     if (!rate.allowed) return rateLimitResponse(request, rate.retryAfterSeconds);
     const input = schema.safeParse(await request.json().catch(() => null));
     if (!input.success) return apiError(request, "INVALID_INPUT", "Enter a valid URL." , 400 );
-    return NextResponse.json(await createUrlImport(user.id, input.data.url), { status: 202 });
+    return NextResponse.json(await createUrlImport(user.id, input.data.url, {
+      publicationRequested: input.data.publicationRequested,
+      requesterRole: user.role,
+    }), { status: 202 });
   } catch (error) {
     if (error instanceof SafeFetchError) {
       return apiError(request, error.code, error.message , 400 );

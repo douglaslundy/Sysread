@@ -5,6 +5,7 @@ const modelMocks = vi.hoisted(() => ({
   chapterDelete: vi.fn(() => ({ exec: vi.fn().mockResolvedValue(undefined) })),
   contentDelete: vi.fn(() => ({ exec: vi.fn().mockResolvedValue(undefined) })),
   quotaUpdate: vi.fn(() => ({ exec: vi.fn().mockResolvedValue(undefined) })),
+  publicationDelete: vi.fn(() => ({ exec: vi.fn().mockResolvedValue(undefined) })),
 }));
 
 vi.mock("../src/modules/catalog/infrastructure/chapter.model", () => ({
@@ -15,6 +16,9 @@ vi.mock("../src/modules/catalog/infrastructure/content.model", () => ({
 }));
 vi.mock("../src/modules/imports/infrastructure/upload-quota.model", () => ({
   UploadQuotaModel: { updateOne: modelMocks.quotaUpdate },
+}));
+vi.mock("../src/modules/publication/infrastructure/publication-request.model", () => ({
+  PublicationRequestModel: { deleteMany: modelMocks.publicationDelete },
 }));
 
 import { discardRejectedUpload } from "../src/modules/imports/infrastructure/rejected-upload-cleanup";
@@ -43,6 +47,7 @@ describe("rejected upload cleanup", () => {
     expect(storage.delete).toHaveBeenCalledTimes(2);
     expect(modelMocks.chapterDelete).toHaveBeenCalledWith({ contentId });
     expect(modelMocks.contentDelete).toHaveBeenCalledWith({ _id: contentId, ownerId });
+    expect(modelMocks.publicationDelete).toHaveBeenCalledWith({ contentId });
     expect(modelMocks.quotaUpdate).toHaveBeenCalledWith(
       { ownerId, usedBytes: { $gte: 4_096 } },
       { $inc: { usedBytes: -4_096 } },

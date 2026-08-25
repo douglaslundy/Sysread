@@ -82,6 +82,17 @@ describe("database models", () => {
     });
     await expect(validMobi.validate()).resolves.toBeUndefined();
 
+    const publicSubmission = new ContentModel({
+      kind: "public",
+      ownerId: new Types.ObjectId(),
+      processingStatus: "ready",
+      publishedAt: new Date(),
+      sourceType: "upload_mobi",
+      title: "Approved public MOBI",
+      visibility: "public",
+    });
+    await expect(publicSubmission.validate()).resolves.toBeUndefined();
+
     expect(
       hasIndex(contentSchema.indexes(), { ownerId: 1, updatedAt: -1 }),
     ).toBe(true);

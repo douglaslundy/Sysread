@@ -37,10 +37,11 @@ export async function AppHeader({ active, readerHref = "/", user }: AppHeaderPro
       </nav>
       <div className="header-actions">
         {user?.role === "admin" ? <Link className="admin-link" href="/admin">{t("admin")}</Link> : null}
+        {user ? <Link className="submissions-link" href="/submissions">{t("submissions")}</Link> : null}
         <ThemeToggle initialTheme={theme} />
         <LocaleSwitcher />
         <button aria-label={t("feedback")}>{"\u25a2"}</button>
-        <ImportDialog authenticated={Boolean(user)} />
+        <ImportDialog authenticated={Boolean(user)} role={user?.role} />
         <AuthControl user={user} />
       </div>
     </header>

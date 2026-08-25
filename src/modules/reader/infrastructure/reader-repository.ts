@@ -12,7 +12,7 @@ export function readableContentQuery(contentId: string, actorUserId: string) {
     processingStatus: "ready" as const,
     $or: [
       { visibility: "private" as const, ownerId: new Types.ObjectId(actorUserId) },
-      { visibility: "public" as const, ownerId: null, publishedAt: { $ne: null } },
+      { visibility: "public" as const, publishedAt: { $ne: null } },
     ],
   };
 }

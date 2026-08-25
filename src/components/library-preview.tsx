@@ -309,7 +309,7 @@ function BookCard({
   if (!authenticated) {
     return <button className="book-card" onClick={() => requestAuthentication("login", "/reader/" + item.id)} type="button">{content}</button>;
   }
-  if (item.kind === "summary") {
+  if (item.kind !== "personal") {
     return <Link className="book-card" href={"/reader/" + item.id}>{content}</Link>;
   }
 

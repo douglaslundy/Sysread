@@ -105,6 +105,22 @@ describe("secure upload import", () => {
     );
   });
 
+  it("persists a public submission intent with a distinct idempotency identity", async () => {
+    const { repository, storage } = dependencies();
+    await service(repository, storage).create({
+      bytes: pdfBytes(),
+      fileName: "shared.pdf",
+      ownerId,
+      publicationRequested: true,
+      requesterRole: "user",
+    });
+    expect(repository.findByIdempotencyKey).toHaveBeenCalledWith(ownerId, expect.stringContaining(":public"));
+    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({
+      publicationRequested: true,
+      requesterRole: "user",
+    }));
+  });
+
   it("recognizes a conformant EPUB container instead of trusting extension", () => {
     expect(uploadFileInternals.detectUploadKind(epubBytes())).toBe("epub");
     expect(

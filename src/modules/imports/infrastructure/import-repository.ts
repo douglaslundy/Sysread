@@ -8,6 +8,8 @@ import type {
   UploadedImport,
 } from "../application/types";
 import { UploadQuotaModel } from "./upload-quota.model";
+import { createPublicationRequest } from "../../publication/application/publication-service";
+import { PublicationRequestModel } from "../../publication/infrastructure/publication-request.model";
 
 function mapJob(job: { _id: Types.ObjectId; subjectId: Types.ObjectId }): UploadedImport {
   return { contentId: job.subjectId.toString(), jobId: job._id.toString() };
@@ -82,6 +84,9 @@ export class MongoImportRepository implements ImportRepository {
     });
 
     try {
+      if (input.publicationRequested) {
+        await createPublicationRequest({ contentId: content._id, requesterId: ownerId, requesterRole: input.requesterRole });
+      }
       const job = await JobModel.create({
         idempotencyKey: input.idempotencyKey,
         kind: {
@@ -94,7 +99,10 @@ export class MongoImportRepository implements ImportRepository {
       });
       return { contentId: content._id.toString(), jobId: job._id.toString(), created: true };
     } catch (error) {
-      await ContentModel.deleteOne({ _id: content._id, ownerId }).exec();
+      await Promise.all([
+        ContentModel.deleteOne({ _id: content._id, ownerId }).exec(),
+        PublicationRequestModel.deleteMany({ contentId: content._id }).exec(),
+      ]);
       const concurrent = await JobModel.findOne({
         idempotencyKey: input.idempotencyKey,
         ownerId,

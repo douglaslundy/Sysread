@@ -17,11 +17,11 @@ function repository(overrides: Partial<ReaderRepository> = {}): ReaderRepository
   };
 }
 describe("reader content authorization", () => {
-  it("permits only owned personal or published summary content", () => {
+  it("permits only owned private or published public content", () => {
     const query = readableContentQuery("507f1f77bcf86cd799439011", "507f191e810c19729de860ea");
     expect(query).toMatchObject({
       processingStatus: "ready",
-      $or: [{ visibility: "private" }, { visibility: "public", ownerId: null }],
+      $or: [{ visibility: "private" }, { visibility: "public" }],
     });
     expect(readableContentQuery("invalid", "invalid")).toBeNull();
   });

@@ -16,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/users">Usuários</Link>
           <Link href="/admin/contents">Conteúdos</Link>
+          <Link href="/admin/publications">Aprovações públicas</Link>
           <Link href="/admin/settings">Configurações</Link>
         </nav>
         <Link className="ui-button ui-button-secondary ui-button-medium" href="/">Voltar para a plataforma</Link>

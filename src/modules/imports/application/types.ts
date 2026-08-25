@@ -11,6 +11,8 @@ export interface CreateImportRecord {
   idempotencyKey: string;
   kind: UploadKind;
   ownerId: string;
+  publicationRequested: boolean;
+  requesterRole: "admin" | "user";
   sha256: string;
   storageKey: string;
   title: string;

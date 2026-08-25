@@ -73,6 +73,8 @@ export class UploadImportService {
     contentOnly?: boolean;
     fileName: string;
     ownerId: string;
+    publicationRequested?: boolean;
+    requesterRole?: "admin" | "user";
   }): Promise<UploadedImport> {
     if (input.bytes.length === 0) {
       throw new UploadValidationError("INVALID_FILE", 415, "The file is empty.");
@@ -96,7 +98,8 @@ export class UploadImportService {
 
     const sha256 = createHash("sha256").update(input.bytes).digest("hex");
     const contentOnly = input.contentOnly === true;
-    const idempotencyKey = `upload:${input.ownerId}:${sha256}:${contentOnly ? "content-only" : "complete"}`;
+    const publicationRequested = input.publicationRequested === true;
+    const idempotencyKey = `upload:${input.ownerId}:${sha256}:${contentOnly ? "content-only" : "complete"}:${publicationRequested ? "public" : "private"}`;
     const existing = await this.repository.findByIdempotencyKey(
       input.ownerId,
       idempotencyKey,
@@ -144,6 +147,8 @@ export class UploadImportService {
         idempotencyKey,
         kind,
         ownerId: input.ownerId,
+        publicationRequested,
+        requesterRole: input.requesterRole ?? "user",
         sha256,
         storageKey,
         title: safeTitle(input.fileName, kind),

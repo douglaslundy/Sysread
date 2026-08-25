@@ -8,6 +8,7 @@ import { ReadingProgressModel } from "../../reader/infrastructure/reading-progre
 import { ReadingSessionModel } from "../../reader/infrastructure/reading-session.model";
 import type { PrivateObjectStorage } from "./types";
 import { UploadQuotaModel } from "../infrastructure/upload-quota.model";
+import { PublicationRequestModel } from "../../publication/infrastructure/publication-request.model";
 
 export class ContentManagementError extends Error {
   constructor(
@@ -116,6 +117,7 @@ export async function deleteOwnedContent(input: {
   await Promise.all([
     ChapterModel.deleteMany({ contentId: ids.contentId }).exec(),
     JobModel.deleteMany({ ownerId: ids.ownerId, subjectId: ids.contentId }).exec(),
+    PublicationRequestModel.deleteMany({ contentId: ids.contentId }).exec(),
     ReadingProgressModel.deleteMany({ contentId: ids.contentId }).exec(),
     ReadingSessionModel.deleteMany({ contentId: ids.contentId }).exec(),
   ]);

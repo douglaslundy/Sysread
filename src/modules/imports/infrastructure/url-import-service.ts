@@ -4,11 +4,13 @@ import { connectToMongo } from "../../../lib/db/mongodb";
 import { ContentModel } from "../../catalog/infrastructure/content.model";
 import { JobModel } from "../../jobs/infrastructure/job.model";
 import { validatePublicUrl } from "./safe-http-fetch";
+import { createPublicationRequest } from "../../publication/application/publication-service";
+import { PublicationRequestModel } from "../../publication/infrastructure/publication-request.model";
 
-export async function createUrlImport(owner: string, value: string) {
+export async function createUrlImport(owner: string, value: string, options: { publicationRequested: boolean; requesterRole: "admin" | "user" }) {
   const url = validatePublicUrl(value).toString();
   const ownerId = new Types.ObjectId(owner);
-  const idempotencyKey = `url:${owner}:${createHash("sha256").update(url).digest("hex")}`;
+  const idempotencyKey = `url:${owner}:${createHash("sha256").update(url).digest("hex")}:${options.publicationRequested ? "public" : "private"}`;
   await connectToMongo();
   const existing = await JobModel.findOne({ idempotencyKey, ownerId }).exec();
   if (existing) {
@@ -35,10 +37,16 @@ export async function createUrlImport(owner: string, value: string) {
     visibility: "private",
   });
   try {
+    if (options.publicationRequested) {
+      await createPublicationRequest({ contentId: content._id, requesterId: ownerId, requesterRole: options.requesterRole });
+    }
     const job = await JobModel.create({ idempotencyKey, kind: "import_url", ownerId, subjectId: content._id });
     return { contentId: content._id.toString(), jobId: job._id.toString() };
   } catch (error) {
-    await ContentModel.deleteOne({ _id: content._id, ownerId }).exec();
+    await Promise.all([
+      ContentModel.deleteOne({ _id: content._id, ownerId }).exec(),
+      PublicationRequestModel.deleteMany({ contentId: content._id }).exec(),
+    ]);
     const concurrent = await JobModel.findOne({ idempotencyKey, ownerId }).exec();
     if (concurrent) return { contentId: concurrent.subjectId.toString(), jobId: concurrent._id.toString() };
     throw error;

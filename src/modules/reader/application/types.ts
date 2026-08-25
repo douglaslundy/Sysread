@@ -6,7 +6,7 @@ export interface ReaderContent {
   cleanupLevel: "disabled" | "light" | "standard";
   coverUrl?: string;
   id: string;
-  kind: "personal" | "summary";
+  kind: "personal" | "public" | "summary";
   processingStatus: "ready";
   sourceType: "upload_pdf" | "upload_epub" | "upload_mobi" | "link_article" | "admin_text" | "readcoach_summary";
   title: string;

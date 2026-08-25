@@ -9,6 +9,7 @@ import { contentOnlyChapters } from "../domain/content-only";
 import { parsePdf, PdfParseError } from "../domain/pdf-parser";
 import { cleanupText } from "../domain/text-cleanup";
 import { discardRejectedUpload } from "./rejected-upload-cleanup";
+import { publishApprovedContent } from "../../publication/application/publication-service";
 
 function countWords(text: string) {
   return text.trim().split(/\s+/u).filter(Boolean).length;
@@ -101,6 +102,7 @@ export function createPdfImportHandler(storage: PrivateObjectStorage): JobHandle
         },
       },
     ).exec();
+    await publishApprovedContent(contentId);
     await context.reportProgress(95, "FINALIZING");
   };
 }

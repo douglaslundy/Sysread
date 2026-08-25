@@ -4,7 +4,8 @@
     "library": "Biblioteca",
     "feedback": "Feedback",
     "import": "Importar"
-    ,"admin": "Área Administrativa"
+    ,"admin": "Área Administrativa",
+    "submissions": "Meus envios"
   },
   "Locale": {
     "label": "Idioma da interface",
@@ -19,7 +20,7 @@
   },
   "Library": {
     "personal": "Biblioteca pessoal",
-    "summaries": "Biblioteca de resumos Sysread",
+    "summaries": "Biblioteca pública Sysread",
     "filterAll": "Todos",
     "requestSummary": "Solicitar resumo",
     "category": {
@@ -41,8 +42,8 @@
     "personalEmptyDescription": "Use Importar na barra superior para adicionar PDFs, EPUBs, MOBIs ou links de artigos.",
     "signInEmpty": "Entre para criar sua biblioteca pessoal.",
     "personalError": "Não foi possível carregar sua biblioteca.",
-    "summariesError": "Não foi possível carregar os resumos.",
-    "summariesEmpty": "Nenhum resumo encontrado nesta categoria.",
+    "summariesError": "Não foi possível carregar a biblioteca pública.",
+    "summariesEmpty": "Nenhum conteúdo público encontrado nesta categoria.",
     "retry": "Tentar novamente",
     "loadMore": "Carregar mais",
     "edit": "Editar",
@@ -78,10 +79,26 @@
     "account": "Conta",
     "signedInAs": "Conectado como",
     "logout": "Sair",
+    "submissions": "Meus envios públicos",
     "openAccount": "Abrir conta",
     "openAuth": "Entrar ou criar conta",
     "genericError": "Não foi possível concluir a solicitação."
     ,"required": "Você precisa entrar na sua conta para continuar."
+  },
+  "Publication": {
+    "myTitle": "Meus envios públicos",
+    "myDescription": "Acompanhe os livros enviados para a biblioteca pública e consulte a justificativa da administração.",
+    "empty": "Você ainda não enviou nenhum conteúdo para publicação.",
+    "requestedAt": "Enviado em {date}",
+    "processing": "Processamento: {status}",
+    "justification": "Justificativa da administração",
+    "waitingJustification": "Aguardando análise e justificativa da administração.",
+    "openBook": "Abrir livro publicado",
+    "status": {
+      "pending": "Aguardando aprovação",
+      "approved": "Aprovado",
+      "rejected": "Recusado"
+    }
   },
   "Profile": {
     "profileTab": "Perfil",
@@ -116,6 +133,9 @@
     "fileHint": "PDF, EPUB ou MOBI, sujeito ao limite do seu armazenamento privado.",
     "contentOnly": "Importar somente o conteúdo",
     "contentOnlyDescription": "Remove sumário, menus, glossário, índices e referências bibliográficas identificáveis.",
+    "requestPublic": "Disponibilizar para todos os usuários",
+    "publicAdminDescription": "Após o processamento, o conteúdo será publicado diretamente na biblioteca pública.",
+    "publicUserDescription": "Após o processamento, o conteúdo será enviado para aprovação da administração.",
     "urlLabel": "URL pública do artigo",
     "submitFile": "Enviar e processar",
     "submitUrl": "Importar artigo",

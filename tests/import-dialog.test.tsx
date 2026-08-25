@@ -12,8 +12,8 @@ const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); refresh.mockReset(); });
 
-function show(authenticated: boolean) {
-  render(<NextIntlClientProvider locale="en" messages={en}><ImportDialog authenticated={authenticated} /></NextIntlClientProvider>);
+function show(authenticated: boolean, role: "admin" | "user" = "user") {
+  render(<NextIntlClientProvider locale="en" messages={en}><ImportDialog authenticated={authenticated} role={role} /></NextIntlClientProvider>);
 }
 
 describe("import dialog", () => {
@@ -32,6 +32,7 @@ describe("import dialog", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Import" }));
     await user.click(screen.getByRole("switch", { name: /Import content only/ }));
+    await user.click(screen.getByRole("switch", { name: /Make available to all users/ }));
     await user.upload(screen.getByLabelText("Choose a file"), new File(["%PDF-1.7"], "book.pdf", { type: "application/pdf" }));
     fireEvent.submit(screen.getByRole("button", { name: "Upload and process" }).closest("form")!);
 
@@ -39,7 +40,14 @@ describe("import dialog", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/imports", expect.objectContaining({ method: "POST" }));
     const form = fetchMock.mock.calls[0][1]?.body as FormData;
     expect(form.get("contentOnly")).toBe("true");
+    expect(form.get("publicationRequested")).toBe("true");
     expect(refresh).toHaveBeenCalledOnce();
+  });
+
+  it("explains direct public publishing to administrators", async () => {
+    show(true, "admin");
+    await userEvent.click(screen.getByRole("button", { name: "Import" }));
+    expect(screen.getByText(/published directly to the public library/i)).toBeVisible();
   });
 
   it("submits an article URL and shows a safe server error", async () => {

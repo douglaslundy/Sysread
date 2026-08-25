@@ -11,3 +11,4 @@ export * from "../../modules/billing/infrastructure/webhook-event.model";
 export * from "../../modules/reader/infrastructure/reading-session.model";
 export * from "../../modules/security/infrastructure/rate-limit.model";
 export * from "../../modules/admin/infrastructure/app-setting.model";
+export * from "../../modules/publication/infrastructure/publication-request.model";

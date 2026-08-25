@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
@@ -95,6 +96,7 @@ export function AuthControl({ user }: AuthControlProps) {
             <span>{t("signedInAs")}</span>
             <strong>{user.name}</strong>
             <small>{user.email}</small>
+            <Link className="ui-button ui-button-secondary ui-button-medium" href="/submissions" onClick={close}>{t("submissions")}</Link>
             <ProfilePanel
               onAccountDeleted={() => {
                 setOpen(false);

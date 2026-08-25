@@ -13,12 +13,13 @@ type JobState = {
   statusCode: string;
 };
 
-export function ImportDialog({ authenticated }: { authenticated: boolean }) {
+export function ImportDialog({ authenticated, role = "user" }: { authenticated: boolean; role?: "admin" | "user" }) {
   const t = useTranslations("Import");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [contentOnly, setContentOnly] = useState(false);
+  const [publicationRequested, setPublicationRequested] = useState(false);
   const [url, setUrl] = useState("");
   const [job, setJob] = useState<JobState | null>(null);
   const [error, setError] = useState("");
@@ -75,13 +76,14 @@ export function ImportDialog({ authenticated }: { authenticated: boolean }) {
     const body = new FormData();
     body.set("file", file);
     body.set("contentOnly", String(contentOnly));
+    body.set("publicationRequested", String(publicationRequested));
     await submit("/api/imports", { body, method: "POST" });
   }
 
   async function submitUrl(event: FormEvent) {
     event.preventDefault();
     await submit("/api/imports/url", {
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ publicationRequested, url }),
       headers: { "content-type": "application/json" },
       method: "POST",
     });
@@ -129,6 +131,7 @@ export function ImportDialog({ authenticated }: { authenticated: boolean }) {
                       <label>{t("fileLabel")}<input accept=".pdf,.epub,.mobi,application/pdf,application/epub+zip,application/x-mobipocket-ebook,application/vnd.amazon.mobi8-ebook" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required type="file" /></label>
                       <small>{t("fileHint")}</small>
                       <Toggle checked={contentOnly} description={t("contentOnlyDescription")} label={t("contentOnly")} onCheckedChange={setContentOnly} />
+                      <Toggle checked={publicationRequested} description={t(role === "admin" ? "publicAdminDescription" : "publicUserDescription")} label={t("requestPublic")} onCheckedChange={setPublicationRequested} />
                       <Button disabled={submitting || !file} type="submit">{t("submitFile")}</Button>
                     </form>
                   ),
@@ -139,6 +142,7 @@ export function ImportDialog({ authenticated }: { authenticated: boolean }) {
                   content: (
                     <form className="import-form" onSubmit={submitUrl}>
                       <label>{t("urlLabel")}<input onChange={(event) => setUrl(event.target.value)} placeholder="https://" required type="url" value={url} /></label>
+                      <Toggle checked={publicationRequested} description={t(role === "admin" ? "publicAdminDescription" : "publicUserDescription")} label={t("requestPublic")} onCheckedChange={setPublicationRequested} />
                       <Button disabled={submitting || !url} type="submit">{t("submitUrl")}</Button>
                     </form>
                   ),

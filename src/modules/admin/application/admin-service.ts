@@ -7,6 +7,7 @@ import { JobModel } from "@/modules/jobs/infrastructure/job.model";
 import { ReadingProgressModel } from "@/modules/reader/infrastructure/reading-progress.model";
 import { ReadingSessionModel } from "@/modules/reader/infrastructure/reading-session.model";
 import { UserModel } from "@/modules/users/infrastructure/user.model";
+import { PublicationRequestModel } from "@/modules/publication/infrastructure/publication-request.model";
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 
@@ -149,6 +150,6 @@ export async function deleteAdminContent(contentId: string) {
   const result = await ContentModel.deleteOne({ _id: id }).exec();
   if (!result.deletedCount) return false;
   await Promise.all([ChapterModel.deleteMany({ contentId: id }), ReadingProgressModel.deleteMany({ contentId: id }),
-    ReadingSessionModel.deleteMany({ contentId: id }), JobModel.deleteMany({ subjectId: id })]);
+    ReadingSessionModel.deleteMany({ contentId: id }), JobModel.deleteMany({ subjectId: id }), PublicationRequestModel.deleteMany({ contentId: id })]);
   return true;
 }

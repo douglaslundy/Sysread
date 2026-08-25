@@ -10,6 +10,7 @@ import { JobModel } from "@/modules/jobs/infrastructure/job.model";
 import { ReadingProgressModel } from "@/modules/reader/infrastructure/reading-progress.model";
 import { ReadingSessionModel } from "@/modules/reader/infrastructure/reading-session.model";
 import { ReadingSettingsModel } from "@/modules/settings/infrastructure/reading-settings.model";
+import { PublicationRequestModel } from "@/modules/publication/infrastructure/publication-request.model";
 import { UserModel } from "@/modules/users/infrastructure/user.model";
 import { connectToMongo } from "@/lib/db/mongodb";
 
@@ -41,6 +42,7 @@ export async function purgeDeletedUsers(env: ServerEnv, limit = 25): Promise<num
       SubscriptionModel.deleteMany({ userId: user._id }).exec(),
       UploadQuotaModel.deleteMany({ ownerId: user._id }).exec(),
       JobModel.deleteMany({ ownerId: user._id }).exec(),
+      PublicationRequestModel.deleteMany({ $or: [{ contentId: { $in: contentIds } }, { requesterId: user._id }] }).exec(),
     ]);
     await ContentModel.deleteMany({ ownerId: user._id }).exec();
     await UserModel.updateOne(

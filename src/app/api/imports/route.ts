@@ -62,6 +62,8 @@ export async function POST(request: Request) {
       contentOnly: form?.get("contentOnly") === "true",
       fileName: file.name,
       ownerId: user.id,
+      publicationRequested: form?.get("publicationRequested") === "true",
+      requesterRole: user.role,
     });
 
     return NextResponse.json(result, { status: 202 });

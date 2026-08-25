@@ -4,7 +4,8 @@
     "library": "Library",
     "feedback": "Feedback",
     "import": "Import"
-    ,"admin": "Administrative Area"
+    ,"admin": "Administrative Area",
+    "submissions": "My submissions"
   },
   "Locale": {
     "label": "Interface language",
@@ -19,7 +20,7 @@
   },
   "Library": {
     "personal": "Personal library",
-    "summaries": "Sysread summary library",
+    "summaries": "Sysread public library",
     "filterAll": "All",
     "category": {
       "biography": "Biography",
@@ -40,8 +41,8 @@
     "personalEmptyDescription": "Use Import in the top bar to add PDFs, EPUBs, MOBIs, or article links.",
     "signInEmpty": "Sign in to create your personal library.",
     "personalError": "Your library could not be loaded.",
-    "summariesError": "The summaries could not be loaded.",
-    "summariesEmpty": "No summaries were found in this category.",
+    "summariesError": "The public library could not be loaded.",
+    "summariesEmpty": "No public content was found in this category.",
     "retry": "Try again",
     "summaryRequestTitle": "Request a summary",
     "requestedBookTitle": "Book title",
@@ -97,10 +98,26 @@
     "account": "Account",
     "signedInAs": "Signed in as",
     "logout": "Sign out",
+    "submissions": "My public submissions",
     "openAccount": "Open account",
     "openAuth": "Sign in or create account",
     "genericError": "The request could not be completed."
     ,"required": "You need to sign in to your account to continue."
+  },
+  "Publication": {
+    "myTitle": "My public submissions",
+    "myDescription": "Track books submitted to the public library and read the administrator's justification.",
+    "empty": "You have not submitted any content for publication yet.",
+    "requestedAt": "Submitted on {date}",
+    "processing": "Processing: {status}",
+    "justification": "Administrator justification",
+    "waitingJustification": "Waiting for administrator review and justification.",
+    "openBook": "Open published book",
+    "status": {
+      "pending": "Waiting for approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "Profile": {
     "profileTab": "Profile",
@@ -135,6 +152,9 @@
     "fileHint": "PDF, EPUB or MOBI, subject to your private storage limit.",
     "contentOnly": "Import content only",
     "contentOnlyDescription": "Removes identifiable contents pages, menus, glossaries, indexes and bibliographic references.",
+    "requestPublic": "Make available to all users",
+    "publicAdminDescription": "After processing, the content will be published directly to the public library.",
+    "publicUserDescription": "After processing, the content will be submitted for administrator approval.",
     "urlLabel": "Public article URL",
     "submitFile": "Upload and process",
     "submitUrl": "Import article",

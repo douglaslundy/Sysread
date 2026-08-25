@@ -22,12 +22,11 @@ function mapContent(
   progressPercent?: number,
 ): CatalogItem {
   const id = content._id.toString();
-  const privateCover = content.kind === "personal" &&
-    typeof content.sourceMetadata.coverStorageKey === "string";
+  const storedCover = typeof content.sourceMetadata.coverStorageKey === "string";
   return {
     author: content.author,
     category: content.category,
-    coverUrl: privateCover ? `/api/contents/${id}/cover` : content.coverUrl,
+    coverUrl: storedCover ? `/api/contents/${id}/cover` : content.coverUrl,
     id,
     kind: content.kind,
     processingStatus: content.processingStatus,
@@ -98,7 +97,7 @@ export class MongoCatalogRepository implements CatalogRepository {
   ): Promise<Page<CatalogItem>> {
     await connectToMongo();
     const query: Record<string, unknown> = {
-      kind: "summary",
+    kind: { $in: ["public", "summary"] },
       processingStatus: "ready",
       publishedAt: { $ne: null },
       visibility: "public",

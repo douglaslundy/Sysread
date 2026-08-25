@@ -9,6 +9,7 @@ import { contentOnlyChapters } from "../domain/content-only";
 import { MobiParseError, parseMobi } from "../domain/mobi-parser";
 import { cleanupText } from "../domain/text-cleanup";
 import { discardRejectedUpload } from "./rejected-upload-cleanup";
+import { publishApprovedContent } from "../../publication/application/publication-service";
 
 const countWords = (text: string) => text.trim().split(/\s+/u).filter(Boolean).length;
 const hash = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
@@ -111,6 +112,7 @@ export function createMobiImportHandler(storage: PrivateObjectStorage): JobHandl
         },
       },
     ).exec();
+    await publishApprovedContent(contentId);
     await context.reportProgress(95, "FINALIZING");
   };
 }
