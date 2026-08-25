@@ -45,7 +45,7 @@ function chapterUrl(contentId: string, chapterId: string, variant: TextVariant) 
   return "/api/contents/" + contentId + "/chapters/" + chapterId + "?variant=" + variant;
 }
 
-export function ReaderShell({ contentId }: { contentId: string }) {
+export function ReaderShell({ contentId, initialManage = false }: { contentId: string; initialManage?: boolean }) {
   const t = useTranslations("Reader");
   const [state, setState] = useState(initialState);
   const [chaptersOpen, setChaptersOpen] = useState(true);
@@ -292,7 +292,12 @@ export function ReaderShell({ contentId }: { contentId: string }) {
             />
           ) : null}
           {state.content?.kind === "personal" && state.chapter?.variant === "original" ? (
-            <ContentManagement chapter={state.chapter} contentId={contentId} onUpdated={applyChapterEdit} />
+            <ContentManagement
+              chapter={state.chapter}
+              contentId={contentId}
+              initiallyOpen={initialManage}
+              onUpdated={applyChapterEdit}
+            />
           ) : null}
         </div>
 

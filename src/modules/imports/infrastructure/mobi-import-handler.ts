@@ -8,6 +8,7 @@ import type { PrivateObjectStorage } from "../application/types";
 import { contentOnlyChapters } from "../domain/content-only";
 import { MobiParseError, parseMobi } from "../domain/mobi-parser";
 import { cleanupText } from "../domain/text-cleanup";
+import { discardRejectedUpload } from "./rejected-upload-cleanup";
 
 const countWords = (text: string) => text.trim().split(/\s+/u).filter(Boolean).length;
 const hash = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
@@ -48,6 +49,12 @@ export function createMobiImportHandler(storage: PrivateObjectStorage): JobHandl
       parsed = await parseMobi(bytes);
     } catch (error) {
       if (error instanceof MobiParseError) {
+        await discardRejectedUpload({
+          contentId,
+          ownerId,
+          sourceMetadata: content.sourceMetadata,
+          storage,
+        });
         throw new JobExecutionError(error.code, false, error.message);
       }
       throw error;
@@ -77,12 +84,27 @@ export function createMobiImportHandler(storage: PrivateObjectStorage): JobHandl
     }
     await ChapterModel.deleteMany({ contentId, order: { $gte: chapters.length } }).exec();
 
+    let coverMetadata: Record<string, string> = {};
+    if (parsed.cover) {
+      const coverStorageKey = `${job.ownerId}/${job.subjectId}.cover.${parsed.cover.extension}`;
+      await storage.put({
+        bytes: parsed.cover.bytes,
+        contentType: parsed.cover.mimeType,
+        storageKey: coverStorageKey,
+      });
+      coverMetadata = {
+        "sourceMetadata.coverMimeType": parsed.cover.mimeType,
+        "sourceMetadata.coverStorageKey": coverStorageKey,
+      };
+    }
+
     await ContentModel.updateOne(
       { _id: contentId, ownerId },
       {
         $set: {
           ...(parsed.author ? { author: parsed.author.slice(0, 240) } : {}),
           ...(parsed.title ? { title: parsed.title.slice(0, 500) } : {}),
+          ...coverMetadata,
           coverUrl: "/covers/import-placeholder.svg",
           processingStatus: "ready",
           "sourceMetadata.parserVersion": "mobi-v1",

@@ -8,6 +8,7 @@ import type { PrivateObjectStorage } from "../application/types";
 import { contentOnlyChapters } from "../domain/content-only";
 import { EpubParseError, parseEpub } from "../domain/epub-parser";
 import { cleanupText } from "../domain/text-cleanup";
+import { discardRejectedUpload } from "./rejected-upload-cleanup";
 
 const countWords = (text: string) => text.trim().split(/\s+/u).filter(Boolean).length;
 const hash = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
@@ -48,6 +49,12 @@ export function createEpubImportHandler(storage: PrivateObjectStorage): JobHandl
       parsed = parseEpub(bytes);
     } catch (error) {
       if (error instanceof EpubParseError) {
+        await discardRejectedUpload({
+          contentId,
+          ownerId,
+          sourceMetadata: content.sourceMetadata,
+          storage,
+        });
         throw new JobExecutionError(error.code, false, error.message);
       }
       throw error;

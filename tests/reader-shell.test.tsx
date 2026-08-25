@@ -71,15 +71,21 @@ function mockReader(savedProgress: unknown = null) {
   });
 }
 
-function renderReader() {
+function renderReader(initialManage = false) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <ReaderShell contentId="book-1" />
+      <ReaderShell contentId="book-1" initialManage={initialManage} />
     </NextIntlClientProvider>,
   );
 }
 
 describe("reader desktop shell", () => {
+  it("opens content management when requested from the library card", async () => {
+    mockReader();
+    renderReader(true);
+    expect(await screen.findByRole("dialog", { name: "Edit chapter" })).toBeVisible();
+  });
+
   it("loads three semantic panels and collapses both sidebars accessibly", async () => {
     const user = userEvent.setup();
     mockReader();

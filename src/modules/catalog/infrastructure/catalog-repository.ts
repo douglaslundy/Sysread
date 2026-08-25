@@ -21,12 +21,16 @@ function mapContent(
   content: Content & { _id: Types.ObjectId },
   progressPercent?: number,
 ): CatalogItem {
+  const id = content._id.toString();
+  const privateCover = content.kind === "personal" &&
+    typeof content.sourceMetadata.coverStorageKey === "string";
   return {
     author: content.author,
     category: content.category,
-    coverUrl: content.coverUrl,
-    id: content._id.toString(),
+    coverUrl: privateCover ? `/api/contents/${id}/cover` : content.coverUrl,
+    id,
     kind: content.kind,
+    processingStatus: content.processingStatus,
     progressPercent,
     publishedAt: content.publishedAt?.toISOString(),
     title: content.title,

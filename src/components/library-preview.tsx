@@ -167,7 +167,15 @@ export function LibraryPreview({ authenticated }: { authenticated: boolean }) {
           <>
             <div className="personal-book-grid">
               {personal.items.map((item) => (
-                <BookCard authenticated={authenticated} item={item} key={item.id} />
+                <BookCard
+                  authenticated={authenticated}
+                  item={item}
+                  key={item.id}
+                  onDeleted={(id) => setPersonal((current) => ({
+                    ...current,
+                    items: current.items.filter((entry) => entry.id !== id),
+                  }))}
+                />
               ))}
             </div>
             {personal.nextCursor ? (
@@ -244,13 +252,37 @@ export function LibraryPreview({ authenticated }: { authenticated: boolean }) {
   );
 }
 
-function BookCard({ authenticated, item }: { authenticated: boolean; item: CatalogItem }) {
+function BookCard({
+  authenticated,
+  item,
+  onDeleted,
+}: {
+  authenticated: boolean;
+  item: CatalogItem;
+  onDeleted?: (id: string) => void;
+}) {
+  const t = useTranslations("Library");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
+  const ready = item.processingStatus === "ready";
   const content = (
     <>
       {item.category ? <span className="category">{item.category}</span> : null}
-      <div className="book-spacer" />
+      {item.coverUrl ? (
+        <span
+          aria-label={t("coverOf", { title: item.title })}
+          className="book-cover"
+          role="img"
+          style={{ backgroundImage: `url(${JSON.stringify(item.coverUrl).slice(1, -1)})` }}
+        />
+      ) : <div className="book-spacer" />}
       <h2>{item.title}</h2>
       {item.author ? <p>{item.author}</p> : null}
+      {!ready && item.kind === "personal" ? (
+        <strong className={`book-status book-status-${item.processingStatus}`}>
+          {t(`status.${item.processingStatus}`)}
+        </strong>
+      ) : null}
       {item.progressPercent !== undefined ? (
         <>
           <small>{Math.round(item.progressPercent)}%</small>
@@ -274,10 +306,37 @@ function BookCard({ authenticated, item }: { authenticated: boolean; item: Catal
       ) : null}
     </>
   );
-  return authenticated ? (
-    <Link className="book-card" href={"/reader/" + item.id}>{content}</Link>
-  ) : (
-    <button className="book-card" onClick={() => requestAuthentication("login", "/reader/" + item.id)} type="button">{content}</button>
+  if (!authenticated) {
+    return <button className="book-card" onClick={() => requestAuthentication("login", "/reader/" + item.id)} type="button">{content}</button>;
+  }
+  if (item.kind === "summary") {
+    return <Link className="book-card" href={"/reader/" + item.id}>{content}</Link>;
+  }
+
+  const remove = async () => {
+    if (!window.confirm(t("deleteConfirm", { title: item.title }))) return;
+    setDeleting(true);
+    setDeleteError(false);
+    try {
+      const response = await fetch(`/api/contents/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("DELETE_FAILED");
+      onDeleted?.(item.id);
+    } catch {
+      setDeleteError(true);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="book-card">
+      {ready ? <Link className="book-card-main" href={"/reader/" + item.id}>{content}</Link> : <div className="book-card-main">{content}</div>}
+      <div className="book-card-actions">
+        {ready ? <Link className="book-card-edit" href={"/reader/" + item.id + "?manage=1"}>{t("edit")}</Link> : null}
+        <Button disabled={deleting} onClick={() => void remove()} size="small" variant="danger">{t("delete")}</Button>
+      </div>
+      {deleteError ? <small className="book-card-error" role="alert">{t("deleteError")}</small> : null}
+    </div>
   );
 }
 

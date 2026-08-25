@@ -20,6 +20,7 @@ export type CatalogItem = {
   coverUrl?: string;
   id: string;
   kind: "personal" | "summary";
+  processingStatus: "uploaded" | "processing" | "ready" | "failed";
   progressPercent?: number;
   publishedAt?: string;
   title: string;

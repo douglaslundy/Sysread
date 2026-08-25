@@ -9,15 +9,17 @@ import type { ReaderChapter } from "../application/types";
 export function ContentManagement({
   chapter,
   contentId,
+  initiallyOpen = false,
   onUpdated,
 }: {
   chapter: ReaderChapter;
   contentId: string;
+  initiallyOpen?: boolean;
   onUpdated: (chapter: ReaderChapter) => void;
 }) {
   const t = useTranslations("Reader");
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [title, setTitle] = useState(chapter.title);
   const [text, setText] = useState(chapter.text);
   const [busy, setBusy] = useState(false);

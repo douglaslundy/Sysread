@@ -30,6 +30,13 @@ button { color:inherit; background:none; border:0; }
 .book-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
 .personal-library .book-card { width:192px; }
 .book-card { position:relative; min-height:252px; padding:15px 16px; overflow:hidden; border-radius:16px; border:1px solid var(--card-border); background:var(--card-bg); display:flex; flex-direction:column; }
+.book-card-main { min-width:0; flex:1; display:flex; flex-direction:column; color:inherit; text-decoration:none; }
+.book-cover { width:calc(100% + 32px); min-height:150px; margin:-15px -16px 14px; background-position:center; background-size:cover; border-bottom:1px solid var(--card-border); }
+.book-card-actions { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; }
+.book-card-edit { min-height:32px; display:inline-flex; align-items:center; padding:5px 10px; border:1px solid var(--line); border-radius:8px; color:var(--text); text-decoration:none; font-size:13px; font-weight:700; }
+.book-status { margin-top:12px; color:var(--muted); font-size:12px; }
+.book-status-failed { color:var(--danger-text); }
+.book-card-error { color:var(--danger-text); text-align:left; }
 .book-spacer { flex:1; min-height:100px; }
 .book-card h2 { margin:0 0 6px; font:700 18px/1.3 var(--serif); }
 .book-card p { margin:0; color:var(--text); text-transform:uppercase; font-size:12px; letter-spacing:.04em; font-weight:700; }

@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 import { NextIntlClientProvider } from "next-intl";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import en from "../src/messages/en.json";
@@ -86,5 +86,38 @@ describe("library view", () => {
       );
       expect(libraryCalls).toHaveLength(2);
     });
+  });
+
+  it("shows cover-level edit/delete actions and lets a failed import be removed", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url === "/api/library") {
+        return response({
+          items: [
+            { id: "ready-book", kind: "personal", processingStatus: "ready", title: "Readable book", updatedAt: "2026-08-25T12:00:00.000Z" },
+            { coverUrl: "/api/contents/failed-book/cover", id: "failed-book", kind: "personal", processingStatus: "failed", title: "Broken MOBI", updatedAt: "2026-08-25T11:00:00.000Z" },
+          ],
+          nextCursor: null,
+        });
+      }
+      if (url === "/api/contents/failed-book" && init?.method === "DELETE") {
+        return response({ deleted: true });
+      }
+      return response({ items: [], nextCursor: null });
+    });
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    renderLibrary(true);
+
+    const failedTitle = await screen.findByText("Broken MOBI");
+    const failedCard = failedTitle.closest(".book-card") as HTMLElement;
+    expect(within(failedCard).getByText("Import failed")).toBeVisible();
+    expect(within(failedCard).getByRole("img", { name: "Cover of Broken MOBI" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Edit" })).toHaveAttribute("href", "/reader/ready-book?manage=1");
+    await user.click(within(failedCard).getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(screen.queryByText("Broken MOBI")).not.toBeInTheDocument());
+    expect(fetchMock).toHaveBeenCalledWith("/api/contents/failed-book", { method: "DELETE" });
   });
 });

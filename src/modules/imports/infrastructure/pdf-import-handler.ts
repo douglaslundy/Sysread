@@ -8,6 +8,7 @@ import type { PrivateObjectStorage } from "../application/types";
 import { contentOnlyChapters } from "../domain/content-only";
 import { parsePdf, PdfParseError } from "../domain/pdf-parser";
 import { cleanupText } from "../domain/text-cleanup";
+import { discardRejectedUpload } from "./rejected-upload-cleanup";
 
 function countWords(text: string) {
   return text.trim().split(/\s+/u).filter(Boolean).length;
@@ -53,6 +54,12 @@ export function createPdfImportHandler(storage: PrivateObjectStorage): JobHandle
       parsed = await parsePdf(bytes);
     } catch (error) {
       if (error instanceof PdfParseError) {
+        await discardRejectedUpload({
+          contentId,
+          ownerId,
+          sourceMetadata: content.sourceMetadata,
+          storage,
+        });
         throw new JobExecutionError(error.code, false, error.message);
       }
       throw error;

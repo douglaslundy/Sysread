@@ -37,7 +37,7 @@
     "filterLabel": "Filter by category",
     "loading": "Loading books",
     "personalEmptyTitle": "No books yet",
-    "personalEmptyDescription": "Use Import in the top bar to add PDFs, EPUBs, or article links.",
+    "personalEmptyDescription": "Use Import in the top bar to add PDFs, EPUBs, MOBIs, or article links.",
     "signInEmpty": "Sign in to create your personal library.",
     "personalError": "Your library could not be loaded.",
     "summariesError": "The summaries could not be loaded.",
@@ -52,6 +52,17 @@
     "requestError": "The request could not be submitted.",
     "requestSummary": "Request a summary",
     "loadMore": "Load more",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Permanently delete “{title}” and all related data?",
+    "deleteError": "Deletion failed. Try again.",
+    "coverOf": "Cover of {title}",
+    "status": {
+      "uploaded": "Waiting for processing",
+      "processing": "Importing",
+      "ready": "Ready",
+      "failed": "Import failed"
+    },
     "requestSuccess": "Request submitted."
   },
   "Public": {
