@@ -42,6 +42,7 @@ function mockReader(savedProgress: unknown = null) {
     }
     if (url.includes("/chapters/chapter-")) {
       const second = url.includes("chapter-2");
+      if (init?.method === "DELETE") return response({ deleted: true });
       if (init?.method === "PATCH") {
         const update = JSON.parse(String(init.body)) as { text: string; title: string };
         return response({ chapter: {
@@ -194,5 +195,23 @@ describe("reader desktop shell", () => {
     await user.click(screen.getByRole("button", { name: "Delete material" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/"));
     expect(fetchMock).toHaveBeenCalledWith("/api/contents/book-1", { method: "DELETE" });
+  });
+
+  it("deletes a complete chapter from the editor and opens the adjacent chapter", async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockReader();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderReader();
+
+    await screen.findByText("First paragraph.");
+    await user.click(screen.getByRole("button", { name: "Edit content" }));
+    await user.click(screen.getByRole("button", { name: "Delete chapter" }));
+
+    expect(await screen.findByText("Second chapter text.")).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/contents/book-1/chapters/chapter-1",
+      { method: "DELETE" },
+    );
+    expect(screen.queryByRole("button", { name: /^1Start$/ })).not.toBeInTheDocument();
   });
 });

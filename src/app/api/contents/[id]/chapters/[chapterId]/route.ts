@@ -7,7 +7,7 @@ import { ReaderError, ReaderService } from "@/modules/reader/application/reader-
 import { readerErrorResponse } from "@/modules/reader/infrastructure/http";
 import { MongoReaderRepository } from "@/modules/reader/infrastructure/reader-repository";
 import { assertSameOrigin } from "@/modules/auth/infrastructure/request-security";
-import { ContentManagementError, updateOwnedChapter } from "@/modules/imports/application/content-management-service";
+import { ContentManagementError, deleteOwnedChapter, updateOwnedChapter } from "@/modules/imports/application/content-management-service";
 const querySchema = z.object({ variant: z.enum(["original", "simplified"]).default("original") });
 const updateSchema = z.object({ text: z.string().trim().min(1).max(5_000_000), title: z.string().trim().min(1).max(500) });
 export async function GET(request: Request, context: { params: Promise<{ chapterId: string; id: string }> }) {
@@ -41,6 +41,20 @@ export async function PATCH(request: Request, context: { params: Promise<{ chapt
       ...input.data,
     });
     return NextResponse.json({ chapter });
+  } catch (error) {
+    if (error instanceof ContentManagementError) {
+      return apiError(request, error.code, error.message, error.status);
+    }
+    return authErrorResponse(error, request);
+  }
+}
+
+export async function DELETE(request: Request, context: { params: Promise<{ chapterId: string; id: string }> }) {
+  try {
+    await assertSameOrigin(request);
+    const user = await requireActiveRequestUser(request);
+    const { chapterId, id } = await context.params;
+    return NextResponse.json(await deleteOwnedChapter({ chapterId, contentId: id, ownerId: user.id }));
   } catch (error) {
     if (error instanceof ContentManagementError) {
       return apiError(request, error.code, error.message, error.status);

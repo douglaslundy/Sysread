@@ -12,10 +12,10 @@ import { PublicationRequestModel } from "../../publication/infrastructure/public
 
 export class ContentManagementError extends Error {
   constructor(
-    readonly code: "CONTENT_NOT_FOUND" | "CHAPTER_NOT_FOUND" | "INVALID_CONTENT",
+    readonly code: "CONTENT_NOT_FOUND" | "CHAPTER_NOT_FOUND" | "INVALID_CONTENT" | "LAST_CHAPTER",
     readonly status: number,
   ) {
-    super(code === "INVALID_CONTENT" ? "The content is invalid." : "The material was not found.");
+    super(code === "INVALID_CONTENT" ? "The content is invalid." : code === "LAST_CHAPTER" ? "The only chapter cannot be deleted." : "The material was not found.");
   }
 }
 
@@ -89,6 +89,39 @@ export async function updateOwnedChapter(input: {
     variant: "original" as const,
     wordCount: chapter.wordCount,
   };
+}
+
+export async function deleteOwnedChapter(input: { chapterId: string; contentId: string; ownerId: string }) {
+  const ids = objectIds(input.contentId, input.ownerId);
+  if (!ids || !Types.ObjectId.isValid(input.chapterId)) {
+    throw new ContentManagementError("CONTENT_NOT_FOUND", 404);
+  }
+  await connectToMongo();
+  const content = await ContentModel.findOne({
+    _id: ids.contentId,
+    kind: "personal",
+    ownerId: ids.ownerId,
+    processingStatus: "ready",
+  }).exec();
+  if (!content) throw new ContentManagementError("CONTENT_NOT_FOUND", 404);
+
+  const chapterId = new Types.ObjectId(input.chapterId);
+  const [chapter, chapterCount] = await Promise.all([
+    ChapterModel.findOne({ _id: chapterId, contentId: ids.contentId }).exec(),
+    ChapterModel.countDocuments({ contentId: ids.contentId }).exec(),
+  ]);
+  if (!chapter) throw new ContentManagementError("CHAPTER_NOT_FOUND", 404);
+  if (chapterCount <= 1) throw new ContentManagementError("LAST_CHAPTER", 409);
+
+  await Promise.all([
+    ChapterModel.deleteOne({ _id: chapterId, contentId: ids.contentId }).exec(),
+    ReadingProgressModel.deleteMany({ chapterId, contentId: ids.contentId }).exec(),
+    ContentModel.updateOne(
+      { _id: ids.contentId, ownerId: ids.ownerId },
+      { $set: { "sourceMetadata.lastEditedAt": new Date() } },
+    ).exec(),
+  ]);
+  return { deleted: true };
 }
 
 export async function deleteOwnedContent(input: {

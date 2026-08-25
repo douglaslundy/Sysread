@@ -212,7 +212,7 @@ button { color:inherit; background:none; border:0; }
 .content-editor input,.content-editor textarea { width:100%; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--text); font:inherit; }
 .content-editor textarea { resize:vertical; line-height:1.55; }
 .content-editor-actions { display:flex; justify-content:flex-end; gap:10px; }
-.content-editor-delete { padding-top:16px; border-top:1px solid var(--line); }
+.content-editor-delete { display:flex; flex-wrap:wrap; gap:10px; padding-top:16px; border-top:1px solid var(--line); }
 .reader-prose.font-serif { font-family:var(--serif); }
 .reader-prose.font-sans { font-family:var(--sans); }
 .reader-prose.font-mono { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }

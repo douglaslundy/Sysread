@@ -10,11 +10,13 @@ export function ContentManagement({
   chapter,
   contentId,
   initiallyOpen = false,
+  onChapterDeleted,
   onUpdated,
 }: {
   chapter: ReaderChapter;
   contentId: string;
   initiallyOpen?: boolean;
+  onChapterDeleted: (chapterId: string) => Promise<void>;
   onUpdated: (chapter: ReaderChapter) => void;
 }) {
   const t = useTranslations("Reader");
@@ -58,7 +60,7 @@ export function ContentManagement({
     }
   }
 
-  async function remove() {
+  async function removeContent() {
     if (!window.confirm(t("deleteContentConfirm"))) return;
     setBusy(true);
     setError("");
@@ -69,6 +71,26 @@ export function ContentManagement({
       router.refresh();
     } catch {
       setError(t("contentDeleteError"));
+      setBusy(false);
+    }
+  }
+
+  async function removeChapter() {
+    if (!window.confirm(t("deleteChapterConfirm", { title: chapter.title }))) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/contents/${encodeURIComponent(contentId)}/chapters/${encodeURIComponent(chapter.id)}`, { method: "DELETE" });
+      const payload = await response.json().catch(() => null) as { error?: { code?: string } } | null;
+      if (!response.ok) {
+        if (payload?.error?.code === "LAST_CHAPTER") throw new Error("LAST_CHAPTER");
+        throw new Error("DELETE_CHAPTER_FAILED");
+      }
+      setOpen(false);
+      await onChapterDeleted(chapter.id);
+    } catch (cause) {
+      setError(cause instanceof Error && cause.message === "LAST_CHAPTER" ? t("lastChapterDeleteError") : t("chapterDeleteError"));
+    } finally {
       setBusy(false);
     }
   }
@@ -95,7 +117,8 @@ export function ContentManagement({
             <Button disabled={busy || !title.trim() || !text.trim()} type="submit" variant="primary">{t("saveContent")}</Button>
           </div>
           <div className="content-editor-delete">
-            <Button disabled={busy} onClick={() => void remove()} variant="danger">{t("deleteContent")}</Button>
+            <Button disabled={busy} onClick={() => void removeChapter()} variant="danger">{t("deleteChapter")}</Button>
+            <Button disabled={busy} onClick={() => void removeContent()} variant="danger">{t("deleteContent")}</Button>
           </div>
         </form>
       </Modal>

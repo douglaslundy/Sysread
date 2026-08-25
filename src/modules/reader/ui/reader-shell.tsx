@@ -172,6 +172,21 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     setCurrentAnchor("");
   };
 
+  const applyChapterDelete = async (chapterId: string) => {
+    const removedIndex = state.chapters.findIndex((item) => item.id === chapterId);
+    const remaining = state.chapters.filter((item) => item.id !== chapterId);
+    const target = remaining[Math.min(Math.max(0, removedIndex), remaining.length - 1)];
+    setFocusResume(null);
+    setCurrentAnchor("");
+    if (!target) return;
+    try {
+      const result = await readJson<{ chapter: ReaderChapter }>(chapterUrl(contentId, target.id, "original"));
+      setState((current) => ({ ...current, chapter: result.chapter, chapters: remaining, error: null, progress: null }));
+    } catch {
+      setState((current) => ({ ...current, chapters: remaining, error: "chapter", progress: null }));
+    }
+  };
+
   const focusChapter = state.chapter && paragraphs[focusParagraphIndex]
     ? { ...state.chapter, text: paragraphs[focusParagraphIndex], title: `${state.chapter.title} · ${focusParagraphIndex + 1}/${paragraphs.length}` }
     : null;
@@ -296,6 +311,7 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
               chapter={state.chapter}
               contentId={contentId}
               initiallyOpen={initialManage}
+              onChapterDeleted={applyChapterDelete}
               onUpdated={applyChapterEdit}
             />
           ) : null}
