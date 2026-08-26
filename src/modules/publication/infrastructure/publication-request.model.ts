@@ -14,7 +14,7 @@ export interface PublicationRequest {
 
 const publicationRequestSchema = new Schema<PublicationRequest>(
   {
-    contentId: { index: true, ref: "Content", required: true, type: Schema.Types.ObjectId },
+    contentId: { ref: "Content", required: true, type: Schema.Types.ObjectId },
     decidedAt: { type: Date },
     decidedBy: { ref: "User", type: Schema.Types.ObjectId },
     justification: { maxlength: 2_000, trim: true, type: String },
