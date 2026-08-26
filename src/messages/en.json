@@ -20,7 +20,7 @@
   },
   "Library": {
     "personal": "Personal library",
-    "summaries": "Sysread public library",
+    "summaries": "{platformName} public library",
     "filterAll": "All",
     "category": {
       "biography": "Biography",
@@ -150,6 +150,9 @@
     "urlTab": "Article URL",
     "fileLabel": "Choose a file",
     "fileHint": "PDF, EPUB or MOBI, subject to your private storage limit.",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Select a category",
+    "categoryRequired": "Select a valid category.",
     "contentOnly": "Import content only",
     "contentOnlyDescription": "Removes identifiable contents pages, menus, glossaries, indexes and bibliographic references.",
     "requestPublic": "Make available to all users",

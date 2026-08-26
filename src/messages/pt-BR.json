@@ -20,7 +20,7 @@
   },
   "Library": {
     "personal": "Biblioteca pessoal",
-    "summaries": "Biblioteca pública Sysread",
+    "summaries": "Biblioteca pública {platformName}",
     "filterAll": "Todos",
     "requestSummary": "Solicitar resumo",
     "category": {
@@ -131,6 +131,9 @@
     "urlTab": "URL de artigo",
     "fileLabel": "Escolha um arquivo",
     "fileHint": "PDF, EPUB ou MOBI, sujeito ao limite do seu armazenamento privado.",
+    "categoryLabel": "Categoria",
+    "categoryPlaceholder": "Selecione uma categoria",
+    "categoryRequired": "Selecione uma categoria válida.",
     "contentOnly": "Importar somente o conteúdo",
     "contentOnlyDescription": "Remove sumário, menus, glossário, índices e referências bibliográficas identificáveis.",
     "requestPublic": "Disponibilizar para todos os usuários",

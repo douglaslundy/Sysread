@@ -11,6 +11,7 @@ import {
 import { MongoImportRepository } from "@/modules/imports/infrastructure/import-repository";
 import { createPrivateObjectStorage } from "@/modules/imports/infrastructure/private-storage-factory";
 import { consumeRateLimit, rateLimitResponse } from "@/modules/security/infrastructure/rate-limit";
+import { CategoryError, requireActiveCategory } from "@/modules/categories/application/category-service";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,9 @@ export async function POST(request: Request) {
         ),
       );
     }
+    const categoryId = form?.get("categoryId");
+    if (typeof categoryId !== "string") return apiError(request, "CATEGORY_REQUIRED", "Selecione uma categoria.", 400);
+    const category = await requireActiveCategory(categoryId);
 
     const result = await new UploadImportService(
       new MongoImportRepository(),
@@ -59,6 +63,7 @@ export async function POST(request: Request) {
       },
     ).create({
       bytes: new Uint8Array(await file.arrayBuffer()),
+      category: category.name,
       contentOnly: form?.get("contentOnly") === "true",
       fileName: file.name,
       ownerId: user.id,
@@ -69,6 +74,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: 202 });
   } catch (error) {
     if (error instanceof UploadValidationError) return uploadError(request, error);
+    if (error instanceof CategoryError) return apiError(request, "CATEGORY_REQUIRED", "Selecione uma categoria válida.", 400);
     return authErrorResponse(error, request);
   }
 }

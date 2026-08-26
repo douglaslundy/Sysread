@@ -13,11 +13,14 @@ type JobState = {
   statusCode: string;
 };
 
-export function ImportDialog({ authenticated, role = "user" }: { authenticated: boolean; role?: "admin" | "user" }) {
+type ImportCategory = { id: string; name: string };
+
+export function ImportDialog({ authenticated, categories, role = "user" }: { authenticated: boolean; categories: ImportCategory[]; role?: "admin" | "user" }) {
   const t = useTranslations("Import");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [categoryId, setCategoryId] = useState("");
   const [contentOnly, setContentOnly] = useState(false);
   const [publicationRequested, setPublicationRequested] = useState(false);
   const [url, setUrl] = useState("");
@@ -44,6 +47,7 @@ export function ImportDialog({ authenticated, role = "user" }: { authenticated: 
   const friendlySubmitError = (code?: string, fallback?: string) => ({
     FILE_TOO_LARGE: t("fileTooLarge"),
     INVALID_FILE: t("invalidFile"),
+    CATEGORY_REQUIRED: t("categoryRequired"),
     QUOTA_EXCEEDED: t("quotaExceeded"),
     STORAGE_UNAVAILABLE: t("storageUnavailable"),
   } as Record<string, string>)[code ?? ""] ?? fallback ?? t("submitError");
@@ -75,6 +79,7 @@ export function ImportDialog({ authenticated, role = "user" }: { authenticated: 
     if (!file) return;
     const body = new FormData();
     body.set("file", file);
+    body.set("categoryId", categoryId);
     body.set("contentOnly", String(contentOnly));
     body.set("publicationRequested", String(publicationRequested));
     await submit("/api/imports", { body, method: "POST" });
@@ -83,7 +88,7 @@ export function ImportDialog({ authenticated, role = "user" }: { authenticated: 
   async function submitUrl(event: FormEvent) {
     event.preventDefault();
     await submit("/api/imports/url", {
-      body: JSON.stringify({ publicationRequested, url }),
+      body: JSON.stringify({ categoryId, publicationRequested, url }),
       headers: { "content-type": "application/json" },
       method: "POST",
     });
@@ -130,9 +135,10 @@ export function ImportDialog({ authenticated, role = "user" }: { authenticated: 
                     <form className="import-form" onSubmit={submitFile}>
                       <label>{t("fileLabel")}<input accept=".pdf,.epub,.mobi,application/pdf,application/epub+zip,application/x-mobipocket-ebook,application/vnd.amazon.mobi8-ebook" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required type="file" /></label>
                       <small>{t("fileHint")}</small>
+                      <CategorySelect categories={categories} categoryId={categoryId} label={t("categoryLabel")} onChange={setCategoryId} placeholder={t("categoryPlaceholder")} />
                       <Toggle checked={contentOnly} description={t("contentOnlyDescription")} label={t("contentOnly")} onCheckedChange={setContentOnly} />
                       <Toggle checked={publicationRequested} description={t(role === "admin" ? "publicAdminDescription" : "publicUserDescription")} label={t("requestPublic")} onCheckedChange={setPublicationRequested} />
-                      <Button disabled={submitting || !file} type="submit">{t("submitFile")}</Button>
+                      <Button disabled={submitting || !file || !categoryId} type="submit">{t("submitFile")}</Button>
                     </form>
                   ),
                   label: t("fileTab"),
@@ -142,8 +148,9 @@ export function ImportDialog({ authenticated, role = "user" }: { authenticated: 
                   content: (
                     <form className="import-form" onSubmit={submitUrl}>
                       <label>{t("urlLabel")}<input onChange={(event) => setUrl(event.target.value)} placeholder="https://" required type="url" value={url} /></label>
+                      <CategorySelect categories={categories} categoryId={categoryId} label={t("categoryLabel")} onChange={setCategoryId} placeholder={t("categoryPlaceholder")} />
                       <Toggle checked={publicationRequested} description={t(role === "admin" ? "publicAdminDescription" : "publicUserDescription")} label={t("requestPublic")} onCheckedChange={setPublicationRequested} />
-                      <Button disabled={submitting || !url} type="submit">{t("submitUrl")}</Button>
+                      <Button disabled={submitting || !url || !categoryId} type="submit">{t("submitUrl")}</Button>
                     </form>
                   ),
                   label: t("urlTab"),
@@ -157,5 +164,20 @@ export function ImportDialog({ authenticated, role = "user" }: { authenticated: 
         )}
       </Modal>
     </>
+  );
+}
+
+function CategorySelect({ categories, categoryId, label, onChange, placeholder }: {
+  categories: ImportCategory[];
+  categoryId: string;
+  label: string;
+  onChange: (id: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <label>{label}<select onChange={(event) => onChange(event.target.value)} required value={categoryId}>
+      <option value="">{placeholder}</option>
+      {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+    </select></label>
   );
 }

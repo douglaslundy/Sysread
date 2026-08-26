@@ -7,6 +7,7 @@ export interface UploadedImport {
 
 export interface CreateImportRecord {
   byteSize: number;
+  category: string;
   contentOnly: boolean;
   idempotencyKey: string;
   kind: UploadKind;

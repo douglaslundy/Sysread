@@ -6,6 +6,7 @@ import { AppSettingModel } from "../src/modules/admin/infrastructure/app-setting
 import { ContentModel } from "../src/modules/catalog/infrastructure/content.model";
 import { UserModel } from "../src/modules/users/infrastructure/user.model";
 import { ReadingSettingsModel } from "../src/modules/settings/infrastructure/reading-settings.model";
+import { seedDefaultCategories } from "../src/modules/categories/application/category-service";
 
 async function main() {
   await connectToMongo();
@@ -25,6 +26,7 @@ async function main() {
       { upsert: true },
     ),
   ]);
+  await seedDefaultCategories();
   for (const model of Object.values(mongoose.models)) await model.syncIndexes();
   process.stdout.write("database indexes synchronized\n");
 }

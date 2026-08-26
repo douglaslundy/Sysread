@@ -1,9 +1,10 @@
 import { AppHeader } from "@/components/app-header";
 import { LibraryPreview } from "@/components/library-preview";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
+import { getPlatformSettings } from "@/modules/admin/application/platform-settings";
 
 export default async function HomePage() {
-  const currentUser = await getCurrentUser();
+  const [currentUser, { platformName }] = await Promise.all([getCurrentUser(), getPlatformSettings()]);
 
   return (
     <main className="app-frame">
@@ -21,7 +22,7 @@ export default async function HomePage() {
             : null
         }
       />
-      <LibraryPreview authenticated={Boolean(currentUser)} />
+      <LibraryPreview authenticated={Boolean(currentUser)} platformName={platformName} />
     </main>
   );
 }

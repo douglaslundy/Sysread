@@ -7,6 +7,7 @@ import { AuthControl } from "@/modules/auth/ui/auth-control";
 import { ImportDialog } from "@/modules/imports/ui/import-dialog";
 import { getPlatformSettings } from "@/modules/admin/application/platform-settings";
 import { resolveTheme, themeCookieName } from "@/lib/theme";
+import { listCategories } from "@/modules/categories/application/category-service";
 
 type HeaderUser = {
   email: string;
@@ -24,7 +25,10 @@ type AppHeaderProps = {
 
 export async function AppHeader({ active, readerHref = "/", user }: AppHeaderProps) {
   const t = await getTranslations("Navigation");
-  const { platformName } = await getPlatformSettings();
+  const [{ platformName }, categories] = await Promise.all([
+    getPlatformSettings(),
+    user ? listCategories({ activeOnly: true }) : Promise.resolve([]),
+  ]);
   const themeCookie = (await cookies()).get(themeCookieName)?.value;
   const theme = resolveTheme(themeCookie ?? user?.theme);
 
@@ -41,7 +45,7 @@ export async function AppHeader({ active, readerHref = "/", user }: AppHeaderPro
         <ThemeToggle initialTheme={theme} />
         <LocaleSwitcher />
         <button aria-label={t("feedback")}>{"\u25a2"}</button>
-        <ImportDialog authenticated={Boolean(user)} role={user?.role} />
+        <ImportDialog authenticated={Boolean(user)} categories={categories} role={user?.role} />
         <AuthControl user={user} />
       </div>
     </header>

@@ -7,10 +7,10 @@ import { validatePublicUrl } from "./safe-http-fetch";
 import { createPublicationRequest } from "../../publication/application/publication-service";
 import { PublicationRequestModel } from "../../publication/infrastructure/publication-request.model";
 
-export async function createUrlImport(owner: string, value: string, options: { publicationRequested: boolean; requesterRole: "admin" | "user" }) {
+export async function createUrlImport(owner: string, value: string, options: { category: string; publicationRequested: boolean; requesterRole: "admin" | "user" }) {
   const url = validatePublicUrl(value).toString();
   const ownerId = new Types.ObjectId(owner);
-  const idempotencyKey = `url:${owner}:${createHash("sha256").update(url).digest("hex")}:${options.publicationRequested ? "public" : "private"}`;
+  const idempotencyKey = `url:${owner}:${createHash("sha256").update(url).digest("hex")}:${options.publicationRequested ? "public" : "private"}:${options.category}`;
   await connectToMongo();
   const existing = await JobModel.findOne({ idempotencyKey, ownerId }).exec();
   if (existing) {
@@ -26,6 +26,7 @@ export async function createUrlImport(owner: string, value: string, options: { p
     return { contentId: existing.subjectId.toString(), jobId: existing._id.toString() };
   }
   const content = await ContentModel.create({
+    category: options.category,
     cleanupLevel: "standard",
     kind: "personal",
     ownerId,

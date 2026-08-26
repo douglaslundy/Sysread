@@ -25,7 +25,7 @@ const initialState: LoadState = {
   status: "loading",
 };
 
-export function LibraryPreview({ authenticated }: { authenticated: boolean }) {
+export function LibraryPreview({ authenticated, platformName = "Sysread" }: { authenticated: boolean; platformName?: string }) {
   const t = useTranslations("Library");
   const [personal, setPersonal] = useState<LoadState>(
     authenticated ? initialState : { ...initialState, status: "ready" },
@@ -192,7 +192,7 @@ export function LibraryPreview({ authenticated }: { authenticated: boolean }) {
 
       <article className="summary-library" aria-labelledby="summary-title">
         <div className="section-heading">
-          <h1 id="summary-title">{t("summaries")}</h1>
+          <h1 id="summary-title">{t("summaries", { platformName })}</h1>
           <label className="library-filter">
             <span className="sr-only">{t("filterLabel")}</span>
             <select

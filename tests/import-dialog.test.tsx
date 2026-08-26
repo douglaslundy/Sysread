@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); refresh.mockReset(); });
 
 function show(authenticated: boolean, role: "admin" | "user" = "user") {
-  render(<NextIntlClientProvider locale="en" messages={en}><ImportDialog authenticated={authenticated} role={role} /></NextIntlClientProvider>);
+  render(<NextIntlClientProvider locale="en" messages={en}><ImportDialog authenticated={authenticated} categories={[{ id: "category-1", name: "Technology" }]} role={role} /></NextIntlClientProvider>);
 }
 
 describe("import dialog", () => {
@@ -31,6 +31,7 @@ describe("import dialog", () => {
     show(true);
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Import" }));
+    await user.selectOptions(screen.getByLabelText("Category"), "category-1");
     await user.click(screen.getByRole("switch", { name: /Import content only/ }));
     await user.click(screen.getByRole("switch", { name: /Make available to all users/ }));
     await user.upload(screen.getByLabelText("Choose a file"), new File(["%PDF-1.7"], "book.pdf", { type: "application/pdf" }));
@@ -40,6 +41,7 @@ describe("import dialog", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/imports", expect.objectContaining({ method: "POST" }));
     const form = fetchMock.mock.calls[0][1]?.body as FormData;
     expect(form.get("contentOnly")).toBe("true");
+    expect(form.get("categoryId")).toBe("category-1");
     expect(form.get("publicationRequested")).toBe("true");
     expect(refresh).toHaveBeenCalledOnce();
   });
@@ -58,6 +60,7 @@ describe("import dialog", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Import" }));
     await user.click(screen.getByRole("tab", { name: "Article URL" }));
+    await user.selectOptions(screen.getByLabelText("Category"), "category-1");
     await user.type(screen.getByLabelText("Public article URL"), "http://localhost/");
     await user.click(screen.getByRole("button", { name: "Import article" }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("destination is not allowed"));
@@ -70,6 +73,7 @@ describe("import dialog", () => {
     show(true);
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Import" }));
+    await user.selectOptions(screen.getByLabelText("Category"), "category-1");
     await user.upload(screen.getByLabelText("Choose a file"), new File(["%PDF-1.7"], "book.pdf", { type: "application/pdf" }));
     fireEvent.submit(screen.getByRole("button", { name: "Upload and process" }).closest("form")!);
     expect(await screen.findByRole("alert")).toHaveTextContent("Book storage is temporarily unavailable.");

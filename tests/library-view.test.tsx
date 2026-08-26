@@ -17,15 +17,21 @@ function response(body: unknown, ok = true) {
   return { json: async () => body, ok } as Response;
 }
 
-function renderLibrary(authenticated = false) {
+function renderLibrary(authenticated = false, platformName = "Sysread") {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <LibraryPreview authenticated={authenticated} />
+      <LibraryPreview authenticated={authenticated} platformName={platformName} />
     </NextIntlClientProvider>,
   );
 }
 
 describe("library view", () => {
+  it("uses the configured platform name in the public library title", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(response({ items: [], nextCursor: null }));
+    renderLibrary(false, "Minha Plataforma");
+    expect(screen.getByRole("heading", { name: "Minha Plataforma public library" })).toBeVisible();
+  });
+
   it("shows unauthenticated state and loads filtered summaries", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(

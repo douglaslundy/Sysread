@@ -74,6 +74,7 @@ describe("secure upload import", () => {
     const { repository, storage } = dependencies();
     const result = await service(repository, storage).create({
       bytes: pdfBytes(),
+      category: "Technology",
       fileName: "My private book.pdf",
       ownerId,
     });
@@ -83,14 +84,27 @@ describe("secure upload import", () => {
       expect.objectContaining({ contentType: "application/pdf" }),
     );
     expect(repository.create).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "pdf", title: "My private book" }),
+      expect.objectContaining({ category: "Technology", kind: "pdf", title: "My private book" }),
     );
+  });
+
+  it("requires a category before reserving storage", async () => {
+    const { repository, storage } = dependencies();
+    await expect(service(repository, storage).create({
+      bytes: pdfBytes(),
+      category: " ",
+      fileName: "book.pdf",
+      ownerId,
+    })).rejects.toMatchObject({ code: "CATEGORY_REQUIRED", status: 400 });
+    expect(repository.reserveQuota).not.toHaveBeenCalled();
+    expect(storage.put).not.toHaveBeenCalled();
   });
 
   it("persists the content-only choice and gives it a distinct idempotency identity", async () => {
     const { repository, storage } = dependencies();
     await service(repository, storage).create({
       bytes: pdfBytes(),
+      category: "Technology",
       contentOnly: true,
       fileName: "clean.pdf",
       ownerId,
@@ -109,6 +123,7 @@ describe("secure upload import", () => {
     const { repository, storage } = dependencies();
     await service(repository, storage).create({
       bytes: pdfBytes(),
+      category: "Technology",
       fileName: "shared.pdf",
       ownerId,
       publicationRequested: true,
@@ -136,6 +151,7 @@ describe("secure upload import", () => {
 
     await service(repository, storage).create({
       bytes: mobiBytes(),
+      category: "Technology",
       fileName: "My private book.mobi",
       ownerId,
     });
@@ -153,6 +169,7 @@ describe("secure upload import", () => {
     await expect(
       service(invalid.repository, invalid.storage).create({
         bytes: new TextEncoder().encode("malware"),
+        category: "Technology",
         fileName: "fake.pdf",
         ownerId,
       }),
@@ -162,6 +179,7 @@ describe("secure upload import", () => {
     await expect(
       service(oversized.repository, oversized.storage, 4).create({
         bytes: pdfBytes(),
+        category: "Technology",
         fileName: "large.pdf",
         ownerId,
       }),
@@ -171,6 +189,7 @@ describe("secure upload import", () => {
     await expect(
       service(quota.repository, quota.storage).create({
         bytes: pdfBytes(),
+        category: "Technology",
         fileName: "book.pdf",
         ownerId,
       }),
@@ -182,6 +201,7 @@ describe("secure upload import", () => {
     const { repository, storage } = dependencies({ existing: true });
     const result = await service(repository, storage).create({
       bytes: pdfBytes(),
+      category: "Technology",
       fileName: "same.pdf",
       ownerId,
     });
@@ -198,6 +218,7 @@ describe("secure upload import", () => {
     await expect(
       service(repository, storage).create({
         bytes: pdfBytes(),
+        category: "Technology",
         fileName: "book.pdf",
         ownerId,
       }),
@@ -212,6 +233,7 @@ describe("secure upload import", () => {
 
     await expect(service(repository, storage).create({
       bytes: pdfBytes(),
+      category: "Technology",
       fileName: "book.pdf",
       ownerId,
     })).rejects.toMatchObject({ code: "STORAGE_UNAVAILABLE", status: 503 });

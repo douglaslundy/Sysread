@@ -62,6 +62,7 @@ export class MongoImportRepository implements ImportRepository {
     if (prior) return { ...mapJob(prior), created: false };
 
     const content = await ContentModel.create({
+      category: input.category,
       cleanupLevel: "standard",
       kind: "personal",
       visibility: "private",

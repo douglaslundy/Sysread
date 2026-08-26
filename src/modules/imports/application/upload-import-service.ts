@@ -8,7 +8,7 @@ import type {
 
 export class UploadValidationError extends Error {
   constructor(
-    readonly code: "FILE_TOO_LARGE" | "INVALID_FILE" | "QUOTA_EXCEEDED" | "STORAGE_UNAVAILABLE",
+    readonly code: "CATEGORY_REQUIRED" | "FILE_TOO_LARGE" | "INVALID_FILE" | "QUOTA_EXCEEDED" | "STORAGE_UNAVAILABLE",
     readonly status: number,
     message: string,
   ) {
@@ -70,12 +70,17 @@ export class UploadImportService {
 
   async create(input: {
     bytes: Uint8Array;
+    category: string;
     contentOnly?: boolean;
     fileName: string;
     ownerId: string;
     publicationRequested?: boolean;
     requesterRole?: "admin" | "user";
   }): Promise<UploadedImport> {
+    const category = input.category.trim();
+    if (!category) {
+      throw new UploadValidationError("CATEGORY_REQUIRED", 400, "A category is required.");
+    }
     if (input.bytes.length === 0) {
       throw new UploadValidationError("INVALID_FILE", 415, "The file is empty.");
     }
@@ -99,7 +104,7 @@ export class UploadImportService {
     const sha256 = createHash("sha256").update(input.bytes).digest("hex");
     const contentOnly = input.contentOnly === true;
     const publicationRequested = input.publicationRequested === true;
-    const idempotencyKey = `upload:${input.ownerId}:${sha256}:${contentOnly ? "content-only" : "complete"}:${publicationRequested ? "public" : "private"}`;
+    const idempotencyKey = `upload:${input.ownerId}:${sha256}:${contentOnly ? "content-only" : "complete"}:${publicationRequested ? "public" : "private"}:${category}`;
     const existing = await this.repository.findByIdempotencyKey(
       input.ownerId,
       idempotencyKey,
@@ -143,6 +148,7 @@ export class UploadImportService {
       stored = true;
       const result = await this.repository.create({
         byteSize: input.bytes.length,
+        category,
         contentOnly,
         idempotencyKey,
         kind,

@@ -7,8 +7,9 @@ import { requireActiveRequestUser } from "@/modules/auth/infrastructure/active-r
 import { SafeFetchError } from "@/modules/imports/infrastructure/safe-http-fetch";
 import { createUrlImport } from "@/modules/imports/infrastructure/url-import-service";
 import { consumeRateLimit, rateLimitResponse } from "@/modules/security/infrastructure/rate-limit";
+import { CategoryError, requireActiveCategory } from "@/modules/categories/application/category-service";
 
-const schema = z.object({ publicationRequested: z.boolean().optional().default(false), url: z.string().trim().min(1).max(2048) }).strict();
+const schema = z.object({ categoryId: z.string().trim().min(1), publicationRequested: z.boolean().optional().default(false), url: z.string().trim().min(1).max(2048) }).strict();
 
 export async function POST(request: Request) {
   try {
@@ -18,11 +19,14 @@ export async function POST(request: Request) {
     if (!rate.allowed) return rateLimitResponse(request, rate.retryAfterSeconds);
     const input = schema.safeParse(await request.json().catch(() => null));
     if (!input.success) return apiError(request, "INVALID_INPUT", "Enter a valid URL." , 400 );
+    const category = await requireActiveCategory(input.data.categoryId);
     return NextResponse.json(await createUrlImport(user.id, input.data.url, {
+      category: category.name,
       publicationRequested: input.data.publicationRequested,
       requesterRole: user.role,
     }), { status: 202 });
   } catch (error) {
+    if (error instanceof CategoryError) return apiError(request, "CATEGORY_REQUIRED", "Selecione uma categoria válida.", 400);
     if (error instanceof SafeFetchError) {
       return apiError(request, error.code, error.message , 400 );
     }
