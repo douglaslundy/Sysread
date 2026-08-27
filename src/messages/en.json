@@ -82,12 +82,12 @@
       "placeholder": "Legal copy pending product and counsel review."
     },
     "notFound": {
-      "label": "Sysread - Page not found",
+      "label": "{platformName} - Page not found",
       "action": "Go Home"
     }
   },
   "Auth": {
-    "title": "Sign in to Sysread",
+    "title": "Sign in to {platformName}",
     "login": "Sign in",
     "register": "Create account",
     "name": "Name",

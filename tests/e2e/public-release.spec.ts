@@ -25,7 +25,7 @@ for (const publicPage of publicPages) {
 
 test("public navigation, focus visibility and health contract work end to end", async ({ page, request }) => {
   await page.goto("/pricing");
-  await page.getByRole("link", { name: "Sysread" }).click();
+  await page.locator("a.brand").first().click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { level: 1, name: /(Personal library|Biblioteca pessoal)/i })).toBeVisible();
 
@@ -89,7 +89,7 @@ test("library matches the responsive visual contract and has no WCAG AA violatio
   await expect(protectedBook).toBeVisible();
   await page.screenshot({ fullPage: true, path: testInfo.outputPath("library.png") });
   await protectedBook.click();
-  await expect(page.getByRole("dialog", { name: /Sign in to Sysread|Entrar no Sysread/i })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: /Sign in to|Entrar no/i })).toBeVisible();
   await expect(page.getByRole("dialog").getByRole("tab", { name: /Create account|Criar conta/i })).toBeVisible();
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

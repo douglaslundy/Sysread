@@ -47,7 +47,7 @@ export async function AppHeader({ active, readerHref = "/", user }: AppHeaderPro
         <LocaleSwitcher />
         <button aria-label={t("feedback")}>{"\u25a2"}</button>
         <ImportDialog authenticated={Boolean(user)} categories={categories} role={user?.role} />
-        <AuthControl user={user} />
+        <AuthControl platformName={platformName} user={user} />
       </div>
     </header>
   );

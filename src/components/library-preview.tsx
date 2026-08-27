@@ -25,7 +25,7 @@ const initialState: LoadState = {
   status: "loading",
 };
 
-export function LibraryPreview({ authenticated, platformName = "Sysread" }: { authenticated: boolean; platformName?: string }) {
+export function LibraryPreview({ authenticated, platformName }: { authenticated: boolean; platformName: string }) {
   const t = useTranslations("Library");
   const [personal, setPersonal] = useState<LoadState>(
     authenticated ? initialState : { ...initialState, status: "ready" },

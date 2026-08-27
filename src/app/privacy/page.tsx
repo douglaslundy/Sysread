@@ -8,10 +8,10 @@ export default async function PrivacyPage() {
     <PublicPage platformName={platformName} title="Privacy Policy" eyebrow={"Effective " + legalIdentity.effectiveDate}>
       <div className="legal-copy">{legalIdentity.privacyText ? legalIdentity.privacyText.split(/\n\s*\n/u).map((paragraph, index) => <p key={index}>{paragraph}</p>) : <>
         <p className="legal-draft-notice"><strong>Provisional:</strong> {legalDraftNotice}</p>
-        <p>This policy explains how {legalIdentity.operatorName} processes personal data when you create a Sysread account, import reading material, use Magic Reading or purchase a subscription.</p>
+        <p>This policy explains how {legalIdentity.operatorName} processes personal data when you create a {platformName} account, import reading material, use Magic Reading or purchase a subscription.</p>
 
         <h2>Data we process</h2>
-        <p>We process your name, email, authentication data, language, theme and reading preferences; imported files, extracted article text, chapters and reading progress; job, security and diagnostic metadata; and subscription identifiers and normalized status. Sysread does not store complete payment-card numbers.</p>
+        <p>We process your name, email, authentication data, language, theme and reading preferences; imported files, extracted article text, chapters and reading progress; job, security and diagnostic metadata; and subscription identifiers and normalized status. {platformName} does not store complete payment-card numbers.</p>
 
         <h2>Why we process data</h2>
         <p>We use this data to provide and secure the service, maintain your library and progress, process imports and AI simplification, manage subscriptions, prevent abuse, diagnose failures and comply with applicable obligations.</p>
@@ -26,7 +26,7 @@ export default async function PrivacyPage() {
         <p>You can update profile and reading settings, export your account data, manage your subscription and request account deletion from the application. Some payment or anti-fraud records may remain with Mercado Pago when required by law or its legitimate compliance obligations.</p>
 
         <h2>Security and international processing</h2>
-        <p>Sysread uses encrypted transport, private storage, ownership checks, password hashing, rate limits and signed webhooks. Providers may process data in other countries under their contractual safeguards. No online service can guarantee absolute security.</p>
+        <p>{platformName} uses encrypted transport, private storage, ownership checks, password hashing, rate limits and signed webhooks. Providers may process data in other countries under their contractual safeguards. No online service can guarantee absolute security.</p>
 
         <h2>Contact and policy changes</h2>
         <p>The data controller is {legalIdentity.operatorName}. Privacy questions and requests may be sent to <a href={"mailto:" + legalIdentity.privacyEmail}>{legalIdentity.privacyEmail}</a>.</p>

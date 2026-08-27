@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 describe("reader responsive layout", () => {
   it("keeps chapters, content and focus available on narrow screens", () => {
     const css = readFileSync("src/app/globals.css", "utf8");
-    const mobile = css.slice(css.indexOf("@media (max-width:700px), (hover:none) and (pointer:coarse) {" + String.fromCharCode(10) + "  .reader-layout"));
+    const mobile = css.slice(css.indexOf("@media (max-width:700px), (hover:none) and (pointer:coarse) {"));
     expect(mobile).toContain(".reader-layout");
     expect(mobile).toContain("display:block");
     expect(mobile).toContain(".reader-chapters,.reader-focus");

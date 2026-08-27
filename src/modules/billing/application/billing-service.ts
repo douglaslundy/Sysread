@@ -72,6 +72,7 @@ export async function createVerifiedCheckout(input: {
   payerEmail: string;
   plan: BillingPlan;
   planId: string;
+  platformName: string;
   provider: BillingProvider;
   userId: string;
 }) {
@@ -82,6 +83,6 @@ export async function createVerifiedCheckout(input: {
     externalReference: input.userId,
     payerEmail: input.payerEmail,
     planId: input.planId,
-    reason: input.plan === "annual" ? "Sysread Annual" : "Sysread Weekly",
+    reason: input.platformName + (input.plan === "annual" ? " Annual" : " Weekly"),
   });
 }

@@ -28,11 +28,11 @@ describe("Mercado Pago billing", () => {
     };
     const result = await createVerifiedCheckout({
       appUrl: "https://read.test", payerEmail: "reader@example.com", plan: "annual",
-      planId: "annual-id", provider, userId: "user-1",
+      planId: "annual-id", platformName: "Reader Pro", provider, userId: "user-1",
     });
     expect(result.initPoint).toContain("mercadopago.com");
     expect(provider.getPlan).toHaveBeenCalledBefore(provider.createSubscription);
-    expect(provider.createSubscription).toHaveBeenCalledWith(expect.objectContaining({ planId: "annual-id" }));
+    expect(provider.createSubscription).toHaveBeenCalledWith(expect.objectContaining({ planId: "annual-id", reason: "Reader Pro Annual" }));
   });
 
   it("normalizes entitlement without trusting client state", () => {

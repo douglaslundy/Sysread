@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       payerEmail: user.emailNormalized,
       plan: body.data.plan,
       planId: await configuredPlanId(body.data.plan),
+      platformName: settings.platformName,
       provider,
       userId: user.id,
     });

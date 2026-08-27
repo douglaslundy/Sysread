@@ -21,6 +21,7 @@ type SessionUser = {
 };
 
 type AuthControlProps = {
+  platformName: string;
   user: SessionUser | null;
 };
 
@@ -32,7 +33,7 @@ function initialAuthRequest(): AuthRequest | undefined {
   return { mode, returnTo: params.get("returnTo") ?? undefined };
 }
 
-export function AuthControl({ user }: AuthControlProps) {
+export function AuthControl({ platformName, user }: AuthControlProps) {
   const t = useTranslations("Auth");
   const router = useRouter();
   const [initialRequest] = useState<AuthRequest | undefined>(initialAuthRequest);
@@ -114,9 +115,9 @@ export function AuthControl({ user }: AuthControlProps) {
           </div>
         </Modal>
       ) : (
-        <Modal onClose={close} open={open} title={t("title")}>
+        <Modal onClose={close} open={open} title={t("title", { platformName })}>
           <Tabs
-            ariaLabel={t("title")}
+            ariaLabel={t("title", { platformName })}
             onValueChange={(value) => setMode(value as AuthMode)}
             value={mode}
             items={[

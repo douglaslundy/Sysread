@@ -68,7 +68,7 @@
     "requestError": "Não foi possível enviar a solicitação."
   },
   "Auth": {
-    "title": "Entrar no Sysread",
+    "title": "Entrar no {platformName}",
     "login": "Entrar",
     "register": "Criar conta",
     "name": "Nome",

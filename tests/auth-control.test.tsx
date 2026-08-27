@@ -27,7 +27,7 @@ function renderAuth(
 ) {
   return render(
     <NextIntlClientProvider locale="en" messages={en}>
-      <AuthControl user={user} />
+      <AuthControl platformName="Reader Pro" user={user} />
     </NextIntlClientProvider>,
   );
 }
@@ -35,10 +35,10 @@ function renderAuth(
 describe("authentication modal", () => {
   it("offers explicit login and registration actions for protected features", async () => {
     const user = userEvent.setup();
-    render(<NextIntlClientProvider locale="en" messages={en}><AuthControl user={null} /><AuthRequiredActions /></NextIntlClientProvider>);
+    render(<NextIntlClientProvider locale="en" messages={en}><AuthControl platformName="Reader Pro" user={null} /><AuthRequiredActions /></NextIntlClientProvider>);
     expect(screen.getByText("You need to sign in to your account to continue.")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Create account" }));
-    expect(screen.getByRole("dialog", { name: "Sign in to Sysread" })).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "Sign in to Reader Pro" })).toBeVisible();
     expect(screen.getByRole("textbox", { name: "Name" })).toBeVisible();
   });
 
@@ -52,7 +52,7 @@ describe("authentication modal", () => {
     await user.click(
       screen.getByRole("button", { name: "Sign in or create account" }),
     );
-    expect(screen.getByRole("dialog", { name: "Sign in to Sysread" })).toBeVisible();
+    expect(screen.getByRole("dialog", { name: "Sign in to Reader Pro" })).toBeVisible();
 
     await user.type(
       screen.getByRole("textbox", { name: "Email" }),
