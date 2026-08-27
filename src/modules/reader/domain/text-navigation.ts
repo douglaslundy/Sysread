@@ -30,23 +30,63 @@ export function paragraphAnchor(paragraph: string, index: number): string {
   return "paragraph-" + (index + 1) + "-" + fnv1a(stablePrefix);
 }
 
-export interface HighlightSegment {
-  highlighted: boolean;
-  text: string;
+function tokenize(paragraph: string): RegExpMatchArray[] {
+  return Array.from(paragraph.matchAll(/\S+/gu));
 }
 
-export function highlightWords(paragraph: string, wordIndex: number, wordCount: number): HighlightSegment[] {
-  const tokens = Array.from(paragraph.matchAll(/\S+/gu));
-  if (!tokens.length || wordIndex < 0 || wordIndex >= tokens.length) {
-    return [{ highlighted: false, text: paragraph }];
-  }
+export function wordIndexAtOffset(paragraph: string, offset: number): number {
+  const tokens = tokenize(paragraph);
+  if (!tokens.length) return 0;
+  const index = tokens.findIndex((token) => offset < (token.index ?? 0) + token[0].length);
+  return index === -1 ? tokens.length - 1 : index;
+}
+
+export function wordRangeOffsets(paragraph: string, wordIndex: number, wordCount: number): { end: number; start: number } | null {
+  const tokens = tokenize(paragraph);
+  if (!tokens.length || wordIndex < 0 || wordIndex >= tokens.length) return null;
   const lastIndex = Math.min(tokens.length - 1, wordIndex + Math.max(1, wordCount) - 1);
   const start = tokens[wordIndex].index ?? 0;
   const lastToken = tokens[lastIndex];
-  const end = (lastToken.index ?? 0) + lastToken[0].length;
-  const segments: HighlightSegment[] = [];
-  if (start > 0) segments.push({ highlighted: false, text: paragraph.slice(0, start) });
-  segments.push({ highlighted: true, text: paragraph.slice(start, end) });
-  if (end < paragraph.length) segments.push({ highlighted: false, text: paragraph.slice(end) });
-  return segments;
+  return { end: (lastToken.index ?? 0) + lastToken[0].length, start };
+}
+
+export function excerptRange(paragraph: string, excerpt: string): { end: number; start: number } | null {
+  const trimmed = excerpt.trim();
+  if (!trimmed) return null;
+  const start = paragraph.indexOf(trimmed);
+  if (start < 0) return null;
+  return { end: start + trimmed.length, start };
+}
+
+export interface HighlightRange {
+  className: string;
+  end: number;
+  start: number;
+  title?: string;
+}
+
+export interface RenderSegment {
+  className?: string;
+  text: string;
+  title?: string;
+}
+
+export function applyHighlightRanges(paragraph: string, ranges: HighlightRange[]): RenderSegment[] {
+  const valid = ranges
+    .filter((range) => range.start >= 0 && range.end > range.start && range.end <= paragraph.length)
+    .sort((left, right) => left.start - right.start);
+  const segments: RenderSegment[] = [];
+  let cursor = 0;
+  for (const range of valid) {
+    if (range.start < cursor) continue;
+    if (range.start > cursor) segments.push({ text: paragraph.slice(cursor, range.start) });
+    segments.push(
+      range.title
+        ? { className: range.className, text: paragraph.slice(range.start, range.end), title: range.title }
+        : { className: range.className, text: paragraph.slice(range.start, range.end) },
+    );
+    cursor = range.end;
+  }
+  if (cursor < paragraph.length) segments.push({ text: paragraph.slice(cursor) });
+  return segments.length ? segments : [{ text: paragraph }];
 }

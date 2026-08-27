@@ -73,6 +73,20 @@ describe("note service", () => {
     expect(notes[0]).toMatchObject({ contentTitle: "Book", excerpt: "Passage.", title: "Key idea" });
   });
 
+  it("filters the listing to a single book when a contentId is given", async () => {
+    const userId = new Types.ObjectId();
+    const contentId = new Types.ObjectId();
+    const find = vi.spyOn(NoteModel, "find").mockReturnValue({
+      sort: () => ({ limit: () => ({ lean: () => ({ exec: async () => [] }) }) }),
+    } as never);
+    vi.spyOn(ContentModel, "find").mockReturnValue({
+      select: () => ({ lean: () => ({ exec: async () => [] }) }),
+    } as never);
+
+    await listOwnNotes(userId.toString(), contentId.toString());
+    expect(find).toHaveBeenCalledWith(expect.objectContaining({ contentId }));
+  });
+
   it("only deletes a note the requesting reader owns", async () => {
     const remove = vi.spyOn(NoteModel, "deleteOne").mockReturnValue({ exec: async () => ({ deletedCount: 0 }) } as never);
     await expect(deleteOwnNote({ noteId: new Types.ObjectId().toString(), userId: new Types.ObjectId().toString() }))

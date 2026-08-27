@@ -23,14 +23,14 @@ function selectText(node: Node) {
   selection?.addRange(range);
 }
 
-function renderBubble() {
+function renderBubble(onSaved?: (note: unknown) => void) {
   const containerRef = createRef<HTMLDivElement>();
   render(
     <NextIntlClientProvider locale="en" messages={en}>
       <div data-testid="container" ref={containerRef}>
         <p data-reader-anchor="paragraph-1">Selected sentence here.</p>
       </div>
-      <SelectionNoteBubble chapterId="chapter-1" containerRef={containerRef} contentId="book-1" />
+      <SelectionNoteBubble chapterId="chapter-1" containerRef={containerRef} contentId="book-1" onSaved={onSaved} />
     </NextIntlClientProvider>,
   );
 }
@@ -55,6 +55,24 @@ describe("selection note bubble", () => {
       chapterId: "chapter-1", contentId: "book-1", excerpt: "Selected sentence here.",
       paragraphAnchor: "paragraph-1", title: "Key idea",
     });
+  });
+
+  it("reports the saved excerpt back to the reader so it can be highlighted immediately", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ note: {} }), { status: 200 }));
+    const onSaved = vi.fn();
+    renderBubble(onSaved);
+    const paragraph = screen.getByText("Selected sentence here.");
+    selectText(paragraph);
+    fireEvent.mouseUp(document);
+
+    await user.click(await screen.findByRole("button", { name: "Save note" }));
+    await user.type(screen.getByLabelText("Note title"), "Key idea");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith({
+      chapterId: "chapter-1", excerpt: "Selected sentence here.", paragraphAnchor: "paragraph-1", title: "Key idea",
+    }));
   });
 
   it("hides again once the selection is cleared without saving", () => {

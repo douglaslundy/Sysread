@@ -2,18 +2,30 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Button, Modal } from "@/components/ui";
 import type { ReadingPreferences } from "@/modules/settings/application/types";
 import { ReadingSettingsDialog } from "@/modules/settings/ui/reading-settings-dialog";
 import { FocusPlayer } from "@/modules/focus/ui/focus-player";
 import { nextFocusAdvance } from "@/modules/focus/domain/focus-navigation";
 import { MagicReadingButton } from "@/modules/magic/ui/magic-reading-button";
 import { AmbientAudioPlayer } from "@/modules/audio/ui/ambient-audio-player";
+import { SelectionNoteBubble, type SavedNoteExcerpt } from "@/modules/notes/ui/selection-note-bubble";
 import type { ReadingCheckpoint } from "../application/progress-types";
 import type { ReaderChapter, ReaderChapterSummary, ReaderContent, TextVariant } from "../application/types";
-import { highlightWords, paragraphAnchor, splitParagraphs, wordIndexForParagraph, type ReaderFont, type ReaderFontSize } from "../domain/text-navigation";
+import {
+  applyHighlightRanges,
+  excerptRange,
+  paragraphAnchor,
+  splitParagraphs,
+  wordIndexAtOffset,
+  wordIndexForParagraph,
+  wordRangeOffsets,
+  type HighlightRange,
+  type ReaderFont,
+  type ReaderFontSize,
+} from "../domain/text-navigation";
 import { useReadingProgress } from "./use-reading-progress";
 import { ContentManagement } from "./content-management";
-import { SelectionNoteBubble } from "@/modules/notes/ui/selection-note-bubble";
 
 type ReaderState = {
   chapter: ReaderChapter | null;
@@ -21,8 +33,11 @@ type ReaderState = {
   content: ReaderContent | null;
   error: "chapter" | "load" | "variant" | null;
   loading: boolean;
+  notes: SavedNoteExcerpt[];
   progress: ReadingCheckpoint | null;
 };
+
+type ReadingPosition = { paragraphIndex: number; wordIndex: number };
 
 const initialState: ReaderState = {
   chapter: null,
@@ -30,6 +45,7 @@ const initialState: ReaderState = {
   content: null,
   error: null,
   loading: true,
+  notes: [],
   progress: null,
 };
 
@@ -69,6 +85,7 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     setFontSize(settings.fontSize === "extra-large" ? "xlarge" : settings.fontSize);
   }, []);
   const [resumeAnchor, setResumeAnchor] = useState("");
+  const [focusStartChoice, setFocusStartChoice] = useState<{ resume: ReadingPosition; selection: ReadingPosition } | null>(null);
   const proseRef = useRef<HTMLElement>(null);
 
   const paragraphs = useMemo(() => splitParagraphs(state.chapter?.text ?? ""), [state.chapter?.text]);
@@ -77,10 +94,17 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     [paragraphs],
   );
   const currentParagraph = Math.max(0, anchors.indexOf(currentAnchor));
-  const pauseHighlight = useMemo(() => {
+  // Prefers the live, in-session checkpoint (focusResume) over the value loaded
+  // at page-open time, which never changes again — otherwise the highlighted
+  // pause position stays stuck at whatever was true when the reader mounted.
+  const pauseHighlight = useMemo((): ReadingPosition | null => {
+    if (!state.chapter) return null;
+    if (focusResume && focusResume.chapterId === state.chapter.id && paragraphs[focusResume.paragraphIndex] !== undefined) {
+      return { paragraphIndex: focusResume.paragraphIndex, wordIndex: focusResume.wordIndex };
+    }
     const saved = state.progress;
-    if (!saved || !state.chapter) return null;
     if (
+      !saved ||
       saved.chapterId !== state.chapter.id ||
       saved.textVersionHash !== state.chapter.textVersionHash ||
       saved.textVariant !== state.chapter.variant
@@ -90,7 +114,59 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     const localWordIndex = saved.wordIndex - wordIndexForParagraph(paragraphs, paragraphIndex);
     if (localWordIndex < 0) return null;
     return { paragraphIndex, wordIndex: localWordIndex };
-  }, [anchors, paragraphs, state.chapter, state.progress]);
+  }, [anchors, focusResume, paragraphs, state.chapter, state.progress]);
+  const noteHighlightsByParagraph = useMemo(() => {
+    const map = new Map<number, HighlightRange[]>();
+    if (!state.chapter) return map;
+    for (const note of state.notes) {
+      if (note.chapterId !== state.chapter.id || !note.paragraphAnchor) continue;
+      const paragraphIndex = anchors.indexOf(note.paragraphAnchor);
+      if (paragraphIndex < 0) continue;
+      const range = excerptRange(paragraphs[paragraphIndex] ?? "", note.excerpt);
+      if (!range) continue;
+      const list = map.get(paragraphIndex) ?? [];
+      list.push({ className: "reader-note-highlight", end: range.end, start: range.start, title: note.title });
+      map.set(paragraphIndex, list);
+    }
+    return map;
+  }, [anchors, paragraphs, state.chapter, state.notes]);
+  const captureSelectionPosition = useCallback((): ReadingPosition | null => {
+    const container = proseRef.current;
+    const selection = typeof window === "undefined" ? null : window.getSelection();
+    const text = selection?.toString().trim() ?? "";
+    if (!container || !selection || selection.isCollapsed || !text) return null;
+    const range = selection.getRangeAt(0);
+    if (!container.contains(range.startContainer)) return null;
+    const startElement = range.startContainer instanceof Element ? range.startContainer : range.startContainer.parentElement;
+    const paragraphElement = startElement?.closest<HTMLElement>("[data-reader-anchor]");
+    if (!paragraphElement) return null;
+    const paragraphIndex = anchors.indexOf(paragraphElement.dataset.readerAnchor ?? "");
+    if (paragraphIndex < 0) return null;
+    const measuring = document.createRange();
+    measuring.selectNodeContents(paragraphElement);
+    measuring.setEnd(range.startContainer, range.startOffset);
+    const offset = measuring.toString().length;
+    return { paragraphIndex, wordIndex: wordIndexAtOffset(paragraphs[paragraphIndex] ?? "", offset) };
+  }, [anchors, paragraphs]);
+
+  // Tracked separately from a synchronous read at click time: clicking "Start
+  // reading" itself first triggers a mousedown outside the selected text,
+  // which clears window.getSelection() before the click handler ever runs.
+  const [selectionAnchor, setSelectionAnchor] = useState<ReadingPosition | null>(null);
+  useEffect(() => {
+    function onSelectionRelease(event: MouseEvent | TouchEvent) {
+      const container = proseRef.current;
+      if (!container || !container.contains(event.target as Node)) return;
+      setSelectionAnchor(captureSelectionPosition());
+    }
+    document.addEventListener("mouseup", onSelectionRelease);
+    document.addEventListener("touchend", onSelectionRelease);
+    return () => {
+      document.removeEventListener("mouseup", onSelectionRelease);
+      document.removeEventListener("touchend", onSelectionRelease);
+    };
+  }, [captureSelectionPosition]);
+
   const progress = useReadingProgress({
     anchors,
     chapter: state.chapter,
@@ -120,8 +196,9 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
       readJson<{ chapters: ReaderChapterSummary[] }>("/api/contents/" + contentId + "/chapters", controller.signal),
       readJson<{ progress: ReadingCheckpoint | null }>("/api/contents/" + contentId + "/progress", controller.signal),
       readJson<{ settings: ReadingPreferences }>("/api/me/reading-settings", controller.signal),
+      readJson<{ notes: SavedNoteExcerpt[] }>("/api/notes?contentId=" + contentId, controller.signal).catch(() => ({ notes: [] })),
     ])
-      .then(async ([contentResult, chapterResult, progressResult, settingsResult]) => {
+      .then(async ([contentResult, chapterResult, progressResult, settingsResult, notesResult]) => {
         applySettings(settingsResult.settings);
         const savedProgress = progressResult.progress;
         const first = chapterResult.chapters.find((item) => item.id === savedProgress?.chapterId) ?? chapterResult.chapters[0];
@@ -139,6 +216,7 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
           content: contentResult.content,
           error: null,
           loading: false,
+          notes: notesResult.notes,
           progress: savedProgress,
         });
       })
@@ -207,24 +285,42 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     ? { ...state.chapter, text: paragraphs[focusParagraphIndex], title: `${state.chapter.title} · ${focusParagraphIndex + 1}/${paragraphs.length}` }
     : null;
 
-  const startFocus = () => {
+  const beginFocusAt = useCallback((paragraphIndex: number, wordIndex: number) => {
     if (!state.chapter) return;
-    const paragraphIndex = currentParagraph;
+    setFocusParagraphIndex(paragraphIndex);
+    setFocusResume({ chapterId: state.chapter.id, paragraphIndex, wordIndex });
+    setFocusAutoPlay(false);
+    setFocusCompletion("");
+    setFocusMode(true);
+  }, [state.chapter]);
+
+  const resumeWordIndexFor = useCallback((paragraphIndex: number): number => {
+    if (!state.chapter) return 0;
+    if (focusResume?.chapterId === state.chapter.id && focusResume.paragraphIndex === paragraphIndex) {
+      return focusResume.wordIndex;
+    }
     const savedProgress = state.progress;
-    const localResume = focusResume?.chapterId === state.chapter.id && focusResume.paragraphIndex === paragraphIndex
-      ? focusResume.wordIndex
-      : null;
-    const savedResume = savedProgress?.chapterId === state.chapter.id &&
+    return savedProgress?.chapterId === state.chapter.id &&
       savedProgress.paragraphAnchor === anchors[paragraphIndex] &&
       savedProgress.textVersionHash === state.chapter.textVersionHash &&
       savedProgress.textVariant === state.chapter.variant
       ? Math.max(0, savedProgress.wordIndex - wordIndexForParagraph(paragraphs, paragraphIndex))
       : 0;
-    setFocusParagraphIndex(paragraphIndex);
-    setFocusResume({ chapterId: state.chapter.id, paragraphIndex, wordIndex: localResume ?? savedResume });
-    setFocusAutoPlay(false);
-    setFocusCompletion("");
-    setFocusMode(true);
+  }, [anchors, focusResume, paragraphs, state.chapter, state.progress]);
+
+  const startFocus = () => {
+    if (!state.chapter) return;
+    const selection = selectionAnchor;
+    setSelectionAnchor(null);
+    if (selection) {
+      if (pauseHighlight) {
+        setFocusStartChoice({ resume: pauseHighlight, selection });
+        return;
+      }
+      beginFocusAt(selection.paragraphIndex, selection.wordIndex);
+      return;
+    }
+    beginFocusAt(currentParagraph, resumeWordIndexFor(currentParagraph));
   };
 
   const completeFocus = async () => {
@@ -339,9 +435,12 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
 
         <article className={"reader-prose font-" + font + " size-" + fontSize} ref={proseRef}>
           {paragraphs.map((paragraph, index) => {
-            const segments = pauseHighlight && pauseHighlight.paragraphIndex === index
-              ? highlightWords(paragraph, pauseHighlight.wordIndex, focusSettings.wordsPerBlock)
-              : null;
+            const ranges: HighlightRange[] = [...(noteHighlightsByParagraph.get(index) ?? [])];
+            if (pauseHighlight && pauseHighlight.paragraphIndex === index) {
+              const pauseRange = wordRangeOffsets(paragraph, pauseHighlight.wordIndex, focusSettings.wordsPerBlock);
+              if (pauseRange) ranges.push({ className: "reader-pause-highlight", end: pauseRange.end, start: pauseRange.start });
+            }
+            const segments = ranges.length ? applyHighlightRanges(paragraph, ranges) : null;
             return (
               <p
                 aria-current={anchors[index] === currentAnchor ? "location" : undefined}
@@ -353,15 +452,20 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
                 tabIndex={-1}
               >
                 {segments
-                  ? segments.map((segment, segmentIndex) => segment.highlighted
-                      ? <mark className="reader-pause-highlight" key={segmentIndex}>{segment.text}</mark>
+                  ? segments.map((segment, segmentIndex) => segment.className
+                      ? <mark className={segment.className} key={segmentIndex} title={segment.title}>{segment.text}</mark>
                       : segment.text)
                   : paragraph}
               </p>
             );
           })}
         </article>
-        <SelectionNoteBubble chapterId={state.chapter?.id ?? null} containerRef={proseRef} contentId={contentId} />
+        <SelectionNoteBubble
+          chapterId={state.chapter?.id ?? null}
+          containerRef={proseRef}
+          contentId={contentId}
+          onSaved={(note) => setState((current) => ({ ...current, notes: [...current.notes, note] }))}
+        />
 
         <nav aria-label={t("chapterNavigation")} className="reader-chapter-navigation">
           <button disabled={chapterIndex <= 0} onClick={() => adjacentChapter(-1)}>{t("previousChapter")}</button>
@@ -399,6 +503,36 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
           onComplete={() => void completeFocus()}
           settings={focusSettings}
         />
+      ) : null}
+      {focusStartChoice ? (
+        <Modal
+          description={t("focusStartChoiceDescription")}
+          onClose={() => setFocusStartChoice(null)}
+          open
+          title={t("focusStartChoiceTitle")}
+        >
+          <div className="focus-start-choice-actions">
+            <Button
+              onClick={() => {
+                const target = focusStartChoice.selection;
+                setFocusStartChoice(null);
+                beginFocusAt(target.paragraphIndex, target.wordIndex);
+              }}
+            >
+              {t("focusStartFromSelection")}
+            </Button>
+            <Button
+              onClick={() => {
+                const target = focusStartChoice.resume;
+                setFocusStartChoice(null);
+                beginFocusAt(target.paragraphIndex, target.wordIndex);
+              }}
+              variant="secondary"
+            >
+              {t("focusStartFromResume")}
+            </Button>
+          </div>
+        </Modal>
       ) : null}
     </section>
   );

@@ -12,10 +12,13 @@ function closestAnchor(node: Node | null): string | undefined {
   return element?.closest<HTMLElement>("[data-reader-anchor]")?.dataset.readerAnchor;
 }
 
-export function SelectionNoteBubble({ chapterId, containerRef, contentId }: {
+export type SavedNoteExcerpt = { chapterId: string; excerpt: string; paragraphAnchor?: string; title: string };
+
+export function SelectionNoteBubble({ chapterId, containerRef, contentId, onSaved }: {
   chapterId: string | null;
   containerRef: RefObject<HTMLElement | null>;
   contentId: string;
+  onSaved?: (note: SavedNoteExcerpt) => void;
 }) {
   const t = useTranslations("Notes");
   const [stage, setStage] = useState<Stage>("idle");
@@ -75,6 +78,7 @@ export function SelectionNoteBubble({ chapterId, containerRef, contentId }: {
       });
       if (!response.ok) throw new Error("SAVE_FAILED");
       window.getSelection()?.removeAllRanges();
+      onSaved?.({ chapterId, excerpt, paragraphAnchor, title: title.trim() });
       setStage("saved");
       window.setTimeout(() => setStage((current) => (current === "saved" ? "idle" : current)), 2000);
     } catch {

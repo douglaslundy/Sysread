@@ -66,10 +66,13 @@ export async function createNote(input: {
   };
 }
 
-export async function listOwnNotes(userId: string): Promise<NoteRow[]> {
+export async function listOwnNotes(userId: string, contentId?: string): Promise<NoteRow[]> {
   if (!Types.ObjectId.isValid(userId)) return [];
+  if (contentId !== undefined && !Types.ObjectId.isValid(contentId)) return [];
   await connectToMongo();
-  const notes = await NoteModel.find({ userId: new Types.ObjectId(userId) })
+  const query: Record<string, unknown> = { userId: new Types.ObjectId(userId) };
+  if (contentId) query.contentId = new Types.ObjectId(contentId);
+  const notes = await NoteModel.find(query)
     .sort({ createdAt: -1 })
     .limit(1_000)
     .lean()

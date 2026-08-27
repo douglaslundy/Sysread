@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 import { NextIntlClientProvider } from "next-intl";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import en from "../src/messages/en.json";
@@ -24,9 +24,16 @@ function response(body: unknown, ok = true) {
   return { json: async () => body, ok } as Response;
 }
 
-function mockReader(savedProgress: unknown = null) {
+function mockReader(savedProgress: unknown = null, notes: unknown[] = []) {
   return vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = String(input);
+    if (url.startsWith("/api/notes")) {
+      if (init?.method === "POST") {
+        const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+        return response({ note: { id: "note-new", ...body } });
+      }
+      return response({ notes });
+    }
     if (url.endsWith("/reading-settings")) {
       return response({ settings: { autoAdvance: false, boostMode: false, focusPresentation: "orp", fontFamily: "serif", fontSize: "large", horizontalDirection: "left-to-right", navigationWordStep: 5, verticalDirection: "up", wordsPerBlock: 1, wpm: 350 } });
     }
@@ -172,6 +179,126 @@ describe("reader desktop shell", () => {
     renderReader();
     await screen.findByText("First paragraph.");
     expect(screen.queryByText((_, element) => element?.tagName === "MARK") ?? null).toBeNull();
+  });
+
+  it("moves the highlighted word as the reading session advances, instead of staying fixed", async () => {
+    const user = userEvent.setup();
+    mockReader();
+    renderReader();
+    await user.click(await screen.findByText("Second paragraph."));
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    await screen.findByRole("region", { name: "Focus reader" });
+
+    await user.click(screen.getByRole("button", { name: "Next words" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect((await screen.findByText("paragraph.")).tagName).toBe("MARK");
+
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    await screen.findByRole("region", { name: "Focus reader" });
+    await user.click(screen.getByRole("button", { name: "Previous words" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect((await screen.findByText("Second")).tagName).toBe("MARK");
+    expect(screen.queryByText("paragraph.", { selector: "mark" })).not.toBeInTheDocument();
+  });
+
+  it("highlights saved note excerpts when the book is opened", async () => {
+    mockReader(null, [{
+      chapterId: "chapter-1", excerpt: "First",
+      paragraphAnchor: paragraphAnchor("First paragraph.", 0), title: "Key idea",
+    }]);
+    renderReader();
+    const mark = await screen.findByText("First", { selector: "mark" });
+    expect(mark).toHaveClass("reader-note-highlight");
+    expect(mark).toHaveAttribute("title", "Key idea");
+  });
+
+  it("highlights a newly saved note immediately, without a reload", async () => {
+    const user = userEvent.setup();
+    mockReader();
+    renderReader();
+    const paragraph = await screen.findByText("First paragraph.");
+    const range = document.createRange();
+    range.selectNodeContents(paragraph);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    fireEvent.mouseUp(document);
+
+    await user.click(await screen.findByRole("button", { name: "Save note" }));
+    await user.type(screen.getByLabelText("Note title"), "Key idea");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    const mark = await screen.findByText("First paragraph.", { selector: "mark" });
+    expect(mark).toHaveClass("reader-note-highlight");
+  });
+
+  it("offers to start focus from a selection or from where reading left off", async () => {
+    const user = userEvent.setup();
+    mockReader({
+      chapterId: "chapter-1", completed: false, contentId: "book-1",
+      paragraphAnchor: paragraphAnchor("First paragraph.", 0), percent: 10, revision: 1,
+      textVariant: "original", textVersionHash: "original-hash",
+      updatedAt: "2026-08-17T12:00:00.000Z", wordIndex: 0,
+    });
+    renderReader();
+    const secondParagraph = await screen.findByText("Second paragraph.");
+    const range = document.createRange();
+    range.selectNodeContents(secondParagraph);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    fireEvent.mouseUp(secondParagraph);
+
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    expect(await screen.findByRole("dialog")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Start from selection" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Continue where I left off" })).toBeVisible();
+  });
+
+  it("starts focus from the first word of the selection when chosen", async () => {
+    const user = userEvent.setup();
+    mockReader({
+      chapterId: "chapter-1", completed: false, contentId: "book-1",
+      paragraphAnchor: paragraphAnchor("First paragraph.", 0), percent: 10, revision: 1,
+      textVariant: "original", textVersionHash: "original-hash",
+      updatedAt: "2026-08-17T12:00:00.000Z", wordIndex: 0,
+    });
+    renderReader();
+    const secondParagraph = await screen.findByText("Second paragraph.");
+    const range = document.createRange();
+    range.selectNodeContents(secondParagraph);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    fireEvent.mouseUp(secondParagraph);
+
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    await user.click(await screen.findByRole("button", { name: "Start from selection" }));
+    const focusRegion = await screen.findByRole("region", { name: "Focus reader" });
+    expect(within(focusRegion).getByRole("status")).toHaveTextContent("Second");
+  });
+
+  it("continues from the saved position when chosen over a selection", async () => {
+    const user = userEvent.setup();
+    mockReader({
+      chapterId: "chapter-1", completed: false, contentId: "book-1",
+      paragraphAnchor: paragraphAnchor("First paragraph.", 0), percent: 10, revision: 1,
+      textVariant: "original", textVersionHash: "original-hash",
+      updatedAt: "2026-08-17T12:00:00.000Z", wordIndex: 0,
+    });
+    renderReader();
+    const secondParagraph = await screen.findByText("Second paragraph.");
+    const range = document.createRange();
+    range.selectNodeContents(secondParagraph);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    fireEvent.mouseUp(secondParagraph);
+
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    await user.click(await screen.findByRole("button", { name: "Continue where I left off" }));
+    const focusRegion = await screen.findByRole("region", { name: "Focus reader" });
+    expect(within(focusRegion).getByRole("status")).toHaveTextContent("First");
   });
 
   it("flushes the current paragraph checkpoint on page hide", async () => {

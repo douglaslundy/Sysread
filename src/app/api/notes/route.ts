@@ -21,7 +21,8 @@ function noteErrorResponse(request: Request, error: NoteError) {
 export async function GET(request: Request) {
   try {
     const user = await requireActiveRequestUser(request);
-    return NextResponse.json({ notes: await listOwnNotes(user.id) });
+    const contentId = new URL(request.url).searchParams.get("contentId") ?? undefined;
+    return NextResponse.json({ notes: await listOwnNotes(user.id, contentId) });
   } catch (error) {
     return authErrorResponse(error, request);
   }

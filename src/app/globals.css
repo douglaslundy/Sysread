@@ -225,7 +225,9 @@ button { color:inherit; background:none; border:0; }
 .reader-prose.size-xlarge { font-size:24px; }
 .reader-prose p { padding-left:12px; border-left:2px solid transparent; }
 .reader-prose p[aria-current="location"] { border-left-color:var(--accent); }
-.reader-pause-highlight { padding:0 2px; border-radius:3px; background:#fde047; color:#1a1a00; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+.reader-pause-highlight,.reader-note-highlight { padding:0 2px; border-radius:3px; background:#fde047; color:#1a1a00; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+.reader-note-highlight { cursor:help; }
+.focus-start-choice-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; }
 
 .selection-note-bubble { position:fixed; z-index:40; transform:translate(-50%,-100%); margin-top:-10px; }
 .selection-note-trigger { padding:8px 14px; border:none; border-radius:8px; background:var(--accent); color:var(--on-accent); font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,.25); }
