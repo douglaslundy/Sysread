@@ -201,6 +201,24 @@ describe("reader desktop shell", () => {
     expect(screen.queryByText("paragraph.", { selector: "mark" })).not.toBeInTheDocument();
   });
 
+  it("resumes the true last pause position even after browsing to a different paragraph first", async () => {
+    const user = userEvent.setup();
+    mockReader();
+    renderReader();
+    await user.click(await screen.findByText("First paragraph."));
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    await screen.findByRole("region", { name: "Focus reader" });
+    await user.click(screen.getByRole("button", { name: "Next words" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
+
+    await user.click(await screen.findByText("Second paragraph."));
+
+    await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
+    expect(screen.getByText("Start · 1/2")).toBeVisible();
+    const focusRegion = await screen.findByRole("region", { name: "Focus reader" });
+    expect(within(focusRegion).getByRole("status")).toHaveTextContent("paragraph.");
+  });
+
   it("highlights saved note excerpts when the book is opened", async () => {
     mockReader(null, [{
       chapterId: "chapter-1", excerpt: "First",

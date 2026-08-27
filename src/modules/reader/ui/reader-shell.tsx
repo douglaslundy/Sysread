@@ -312,12 +312,19 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     if (!state.chapter) return;
     const selection = selectionAnchor;
     setSelectionAnchor(null);
+    if (selection && pauseHighlight) {
+      setFocusStartChoice({ resume: pauseHighlight, selection });
+      return;
+    }
     if (selection) {
-      if (pauseHighlight) {
-        setFocusStartChoice({ resume: pauseHighlight, selection });
-        return;
-      }
       beginFocusAt(selection.paragraphIndex, selection.wordIndex);
+      return;
+    }
+    // Always continue from the true last reading position when one exists,
+    // even if the reader has since scrolled to or clicked a different
+    // paragraph — "Start reading" must resume the book, not the current view.
+    if (pauseHighlight) {
+      beginFocusAt(pauseHighlight.paragraphIndex, pauseHighlight.wordIndex);
       return;
     }
     beginFocusAt(currentParagraph, resumeWordIndexFor(currentParagraph));
