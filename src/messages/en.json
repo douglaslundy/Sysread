@@ -5,7 +5,8 @@
     "feedback": "Feedback",
     "import": "Import"
     ,"admin": "Administrative Area",
-    "submissions": "My submissions"
+    "submissions": "My submissions",
+    "notebooks": "My notebooks"
   },
   "Locale": {
     "label": "Interface language",
@@ -316,6 +317,22 @@
     "previous": "Previous words",
     "next": "Next words",
     "keyboard": "Space: pause/play · arrows: move · Esc: close"
+  },
+  "Notes": {
+    "saveNote": "Save note",
+    "titleLabel": "Note title",
+    "titlePlaceholder": "Give this note a title",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Note saved.",
+    "saveError": "The note could not be saved.",
+    "myTitle": "My notebooks",
+    "myDescription": "Every excerpt you saved while reading, organized by book.",
+    "empty": "You have not saved any notes yet. Select text while reading to save one.",
+    "savedAt": "Saved on {date}",
+    "openBook": "Open book",
+    "deleteNote": "Delete note",
+    "deleteConfirm": "Delete this note?"
   },
   "Magic": {
     "action": "Simplify",

@@ -145,11 +145,33 @@ describe("reader desktop shell", () => {
       updatedAt: "2026-08-17T12:00:00.000Z", wordIndex: 3,
     });
     renderReader();
-    const resumedParagraph = await screen.findByText("Second paragraph.");
+    const resumedWord = await screen.findByText("paragraph.");
+    const resumedParagraph = resumedWord.closest("p") as HTMLElement;
     await waitFor(() => expect(resumedParagraph).toHaveAttribute("aria-current", "location"));
     await user.click(screen.getAllByRole("button", { name: "Start reading" })[0]);
     expect(await screen.findByRole("region", { name: "Focus reader" })).toHaveTextContent("paragraph.");
     expect(screen.getByText("Start · 2/2")).toBeVisible();
+  });
+
+  it("highlights the word where focus reading last paused", async () => {
+    mockReader({
+      chapterId: "chapter-1", completed: false, contentId: "book-1",
+      paragraphAnchor: paragraphAnchor("Second paragraph.", 1), percent: 75, revision: 3,
+      textVariant: "original", textVersionHash: "original-hash",
+      updatedAt: "2026-08-17T12:00:00.000Z", wordIndex: 3,
+    });
+    renderReader();
+    await screen.findByText("First paragraph.");
+    const mark = await screen.findByText("paragraph.");
+    expect(mark.tagName).toBe("MARK");
+    expect(mark).toHaveClass("reader-pause-highlight");
+  });
+
+  it("does not highlight anything without a matching saved checkpoint", async () => {
+    mockReader();
+    renderReader();
+    await screen.findByText("First paragraph.");
+    expect(screen.queryByText((_, element) => element?.tagName === "MARK") ?? null).toBeNull();
   });
 
   it("flushes the current paragraph checkpoint on page hide", async () => {

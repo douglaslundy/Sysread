@@ -29,3 +29,24 @@ export function paragraphAnchor(paragraph: string, index: number): string {
   const stablePrefix = paragraph.replace(/\s+/gu, " ").trim().slice(0, 160);
   return "paragraph-" + (index + 1) + "-" + fnv1a(stablePrefix);
 }
+
+export interface HighlightSegment {
+  highlighted: boolean;
+  text: string;
+}
+
+export function highlightWords(paragraph: string, wordIndex: number, wordCount: number): HighlightSegment[] {
+  const tokens = Array.from(paragraph.matchAll(/\S+/gu));
+  if (!tokens.length || wordIndex < 0 || wordIndex >= tokens.length) {
+    return [{ highlighted: false, text: paragraph }];
+  }
+  const lastIndex = Math.min(tokens.length - 1, wordIndex + Math.max(1, wordCount) - 1);
+  const start = tokens[wordIndex].index ?? 0;
+  const lastToken = tokens[lastIndex];
+  const end = (lastToken.index ?? 0) + lastToken[0].length;
+  const segments: HighlightSegment[] = [];
+  if (start > 0) segments.push({ highlighted: false, text: paragraph.slice(0, start) });
+  segments.push({ highlighted: true, text: paragraph.slice(start, end) });
+  if (end < paragraph.length) segments.push({ highlighted: false, text: paragraph.slice(end) });
+  return segments;
+}

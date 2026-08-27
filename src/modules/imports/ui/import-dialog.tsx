@@ -121,7 +121,7 @@ export function ImportDialog({ authenticated, categories, role = "user" }: { aut
 
   return (
     <>
-      <button aria-label={t("open")} className="primary-button" onClick={() => setOpen(true)} type="button">
+      <button aria-label={t("open")} className="header-import-button" onClick={() => setOpen(true)} type="button">
         {"\u2191"} {t("open")}
       </button>
       <Modal onClose={close} open={open} title={t("title")}>

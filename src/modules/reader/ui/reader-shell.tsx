@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ReadingPreferences } from "@/modules/settings/application/types";
 import { ReadingSettingsDialog } from "@/modules/settings/ui/reading-settings-dialog";
@@ -10,9 +10,10 @@ import { MagicReadingButton } from "@/modules/magic/ui/magic-reading-button";
 import { AmbientAudioPlayer } from "@/modules/audio/ui/ambient-audio-player";
 import type { ReadingCheckpoint } from "../application/progress-types";
 import type { ReaderChapter, ReaderChapterSummary, ReaderContent, TextVariant } from "../application/types";
-import { paragraphAnchor, splitParagraphs, wordIndexForParagraph, type ReaderFont, type ReaderFontSize } from "../domain/text-navigation";
+import { highlightWords, paragraphAnchor, splitParagraphs, wordIndexForParagraph, type ReaderFont, type ReaderFontSize } from "../domain/text-navigation";
 import { useReadingProgress } from "./use-reading-progress";
 import { ContentManagement } from "./content-management";
+import { SelectionNoteBubble } from "@/modules/notes/ui/selection-note-bubble";
 
 type ReaderState = {
   chapter: ReaderChapter | null;
@@ -68,6 +69,7 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     setFontSize(settings.fontSize === "extra-large" ? "xlarge" : settings.fontSize);
   }, []);
   const [resumeAnchor, setResumeAnchor] = useState("");
+  const proseRef = useRef<HTMLElement>(null);
 
   const paragraphs = useMemo(() => splitParagraphs(state.chapter?.text ?? ""), [state.chapter?.text]);
   const anchors = useMemo(
@@ -75,6 +77,20 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
     [paragraphs],
   );
   const currentParagraph = Math.max(0, anchors.indexOf(currentAnchor));
+  const pauseHighlight = useMemo(() => {
+    const saved = state.progress;
+    if (!saved || !state.chapter) return null;
+    if (
+      saved.chapterId !== state.chapter.id ||
+      saved.textVersionHash !== state.chapter.textVersionHash ||
+      saved.textVariant !== state.chapter.variant
+    ) return null;
+    const paragraphIndex = anchors.indexOf(saved.paragraphAnchor ?? "");
+    if (paragraphIndex < 0) return null;
+    const localWordIndex = saved.wordIndex - wordIndexForParagraph(paragraphs, paragraphIndex);
+    if (localWordIndex < 0) return null;
+    return { paragraphIndex, wordIndex: localWordIndex };
+  }, [anchors, paragraphs, state.chapter, state.progress]);
   const progress = useReadingProgress({
     anchors,
     chapter: state.chapter,
@@ -321,21 +337,31 @@ export function ReaderShell({ contentId, initialManage = false }: { contentId: s
         {state.error === "chapter" ? <p className="reader-inline-error" role="alert">{t("chapterError")}</p> : null}
         {focusCompletion ? <p className="reader-completion" role="status">{t(focusCompletion === "text" ? "readingComplete" : "paragraphComplete")}</p> : null}
 
-        <article className={"reader-prose font-" + font + " size-" + fontSize}>
-          {paragraphs.map((paragraph, index) => (
-            <p
-              aria-current={anchors[index] === currentAnchor ? "location" : undefined}
-              data-reader-anchor={anchors[index]}
-              id={anchors[index]}
-              key={anchors[index]}
-              onClick={() => setCurrentAnchor(anchors[index])}
-              onFocus={() => setCurrentAnchor(anchors[index])}
-              tabIndex={-1}
-            >
-              {paragraph}
-            </p>
-          ))}
+        <article className={"reader-prose font-" + font + " size-" + fontSize} ref={proseRef}>
+          {paragraphs.map((paragraph, index) => {
+            const segments = pauseHighlight && pauseHighlight.paragraphIndex === index
+              ? highlightWords(paragraph, pauseHighlight.wordIndex, focusSettings.wordsPerBlock)
+              : null;
+            return (
+              <p
+                aria-current={anchors[index] === currentAnchor ? "location" : undefined}
+                data-reader-anchor={anchors[index]}
+                id={anchors[index]}
+                key={anchors[index]}
+                onClick={() => setCurrentAnchor(anchors[index])}
+                onFocus={() => setCurrentAnchor(anchors[index])}
+                tabIndex={-1}
+              >
+                {segments
+                  ? segments.map((segment, segmentIndex) => segment.highlighted
+                      ? <mark className="reader-pause-highlight" key={segmentIndex}>{segment.text}</mark>
+                      : segment.text)
+                  : paragraph}
+              </p>
+            );
+          })}
         </article>
+        <SelectionNoteBubble chapterId={state.chapter?.id ?? null} containerRef={proseRef} contentId={contentId} />
 
         <nav aria-label={t("chapterNavigation")} className="reader-chapter-navigation">
           <button disabled={chapterIndex <= 0} onClick={() => adjacentChapter(-1)}>{t("previousChapter")}</button>

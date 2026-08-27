@@ -4,6 +4,7 @@ import {
   ChapterModel,
   ContentModel,
   JobModel,
+  NoteModel,
   ReadingProgressModel,
   ReadingSettingsModel,
   ReadingSessionModel,
@@ -12,6 +13,7 @@ import {
   chapterSchema,
   contentSchema,
   jobSchema,
+  noteSchema,
   readingProgressSchema,
   readingSettingsSchema,
   readingSessionSchema,
@@ -170,5 +172,26 @@ describe("database models", () => {
     await expect(bucket.validate()).resolves.toBeUndefined();
     expect(hasIndex(readingSessionSchema.indexes(), { userId: 1, startedAt: -1 })).toBe(true);
     expect(hasIndex(rateLimitBucketSchema.indexes(), { key: 1 }, true)).toBe(true);
+  });
+
+  it("requires a title and excerpt for study notes and indexes them per reader", async () => {
+    const missingTitle = new NoteModel({
+      chapterId: new Types.ObjectId(),
+      contentId: new Types.ObjectId(),
+      excerpt: "Selected passage.",
+      userId: new Types.ObjectId(),
+    });
+    await expect(missingTitle.validate()).rejects.toThrow();
+
+    const valid = new NoteModel({
+      chapterId: new Types.ObjectId(),
+      contentId: new Types.ObjectId(),
+      excerpt: "Selected passage.",
+      title: "Key idea",
+      userId: new Types.ObjectId(),
+    });
+    await expect(valid.validate()).resolves.toBeUndefined();
+
+    expect(hasIndex(noteSchema.indexes(), { userId: 1, createdAt: -1 })).toBe(true);
   });
 });

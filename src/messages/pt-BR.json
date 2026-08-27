@@ -5,7 +5,8 @@
     "feedback": "Feedback",
     "import": "Importar"
     ,"admin": "Área Administrativa",
-    "submissions": "Meus envios"
+    "submissions": "Meus envios",
+    "notebooks": "Meus Cadernos"
   },
   "Locale": {
     "label": "Idioma da interface",
@@ -297,6 +298,22 @@
     "previous": "Palavras anteriores",
     "next": "Próximas palavras",
     "keyboard": "Espaço: pausar/iniciar · setas: mover · Esc: fechar"
+  },
+  "Notes": {
+    "saveNote": "Salvar nota",
+    "titleLabel": "Título da nota",
+    "titlePlaceholder": "Dê um título a esta nota",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "saved": "Nota salva.",
+    "saveError": "Não foi possível salvar a nota.",
+    "myTitle": "Meus Cadernos",
+    "myDescription": "Todos os trechos que você salvou durante a leitura, organizados por livro.",
+    "empty": "Você ainda não salvou nenhuma nota. Selecione um trecho durante a leitura para salvar uma.",
+    "savedAt": "Salvo em {date}",
+    "openBook": "Abrir livro",
+    "deleteNote": "Excluir nota",
+    "deleteConfirm": "Excluir esta nota?"
   },
   "Magic": {
     "action": "Simplificar",

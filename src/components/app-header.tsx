@@ -42,6 +42,7 @@ export async function AppHeader({ active, readerHref = "/", user }: AppHeaderPro
       <div className="header-actions">
         {user?.role === "admin" ? <Link className="admin-link" href="/admin">{t("admin")}</Link> : null}
         {user ? <Link className="submissions-link" href="/submissions">{t("submissions")}</Link> : null}
+        {user ? <Link className="notebooks-link" href="/notebooks">{t("notebooks")}</Link> : null}
         <ThemeToggle initialTheme={theme} />
         <LocaleSwitcher />
         <button aria-label={t("feedback")}>{"\u25a2"}</button>
