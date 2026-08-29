@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { minimumPasswordLength } from "@/modules/auth/application/password-policy";
 
 export const profileUpdateSchema = z
   .object({
@@ -13,8 +14,8 @@ export const profileUpdateSchema = z
 
 export const passwordUpdateSchema = z
   .object({
-    currentPassword: z.string().min(12).max(128),
-    newPassword: z.string().min(12).max(128),
+    currentPassword: z.string().min(minimumPasswordLength).max(128),
+    newPassword: z.string().min(minimumPasswordLength).max(128),
   })
   .refine((input) => input.currentPassword !== input.newPassword, {
     message: "The new password must be different.",

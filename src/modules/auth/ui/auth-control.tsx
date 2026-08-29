@@ -13,6 +13,7 @@ import {
 import { Button, Modal, Tabs } from "@/components/ui";
 import { ProfilePanel } from "../../profile/ui/profile-panel";
 import { authRequestEvent, type AuthMode, type AuthRequest } from "./auth-required-actions";
+import { minimumPasswordLength } from "../application/password-policy";
 
 type SessionUser = {
   email: string;
@@ -218,7 +219,7 @@ function AuthForm({
           aria-describedby={mode === "register" ? "password-hint" : undefined}
           autoComplete={mode === "register" ? "new-password" : "current-password"}
           maxLength={128}
-          minLength={12}
+          minLength={minimumPasswordLength}
           name="password"
           required
           type="password"

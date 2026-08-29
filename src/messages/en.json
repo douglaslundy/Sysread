@@ -93,7 +93,7 @@
     "name": "Name",
     "email": "Email",
     "password": "Password",
-    "passwordHint": "At least 12 characters.",
+    "passwordHint": "At least 6 characters.",
     "submitLogin": "Sign in",
     "submitRegister": "Create account",
     "account": "Account",
@@ -376,5 +376,46 @@
     "play": "Play",
     "pause": "Pause",
     "blocked": "Press play again to allow audio."
+  },
+  "Pomodoro": {
+    "title": "Pomodoro timer",
+    "phase": {
+      "study": "Study",
+      "shortBreak": "Short break",
+      "longBreak": "Long break"
+    },
+    "status": {
+      "idle": "Not started",
+      "running": "In progress",
+      "paused": "Paused",
+      "awaiting": "Waiting for confirmation",
+      "completed": "Pomodoro completed"
+    },
+    "remaining": "Time remaining: {time}",
+    "block": "Block {current} of {total}",
+    "start": "Start",
+    "pause": "Pause",
+    "resume": "Resume",
+    "restart": "Restart",
+    "finish": "Finish",
+    "next": "Next stage",
+    "confirm": "Confirm",
+    "silence": "Silence",
+    "silenced": "Silenced",
+    "expand": "Expand Pomodoro",
+    "collapse": "Collapse Pomodoro",
+    "settings": "Settings",
+    "stageEnded": "{phase} ended. Confirm to continue.",
+    "settingsTitle": "Pomodoro settings",
+    "settingsDescription": "Set stage durations and the study sequence.",
+    "settingsResetWarning": "Saving these settings will restart the current Pomodoro.",
+    "studyMinutes": "Study (minutes)",
+    "shortBreakMinutes": "Short break (minutes)",
+    "longBreakMinutes": "Long break (minutes)",
+    "totalBlocks": "Number of blocks",
+    "longBreakEvery": "Long break after how many blocks",
+    "soundEnabled": "Play sound alert",
+    "save": "Save settings",
+    "cancel": "Cancel"
   }
 }

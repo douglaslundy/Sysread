@@ -10,6 +10,8 @@ import type {
 } from "../src/modules/auth/application/types";
 import { argon2PasswordHasher } from "../src/modules/auth/infrastructure/password";
 import { assertSameOrigin } from "../src/modules/auth/infrastructure/request-security";
+import { registerSchema } from "../src/modules/auth/infrastructure/validation";
+import { passwordUpdateSchema } from "../src/modules/profile/infrastructure/validation";
 import {
   createSessionToken,
   verifySessionToken,
@@ -50,6 +52,13 @@ const fakePasswords: PasswordHasher = {
 };
 
 describe("authentication", () => {
+  it("accepts passwords with six characters and rejects shorter passwords", () => {
+    expect(registerSchema.safeParse({ email: "reader@example.com", name: "Reader", password: "123456" }).success).toBe(true);
+    expect(registerSchema.safeParse({ email: "reader@example.com", name: "Reader", password: "12345" }).success).toBe(false);
+    expect(passwordUpdateSchema.safeParse({ currentPassword: "123456", newPassword: "654321" }).success).toBe(true);
+    expect(passwordUpdateSchema.safeParse({ currentPassword: "12345", newPassword: "654321" }).success).toBe(false);
+  });
+
   it("registers normalized accounts and rejects duplicate email", async () => {
     const users = new MemoryUsers();
     const service = new AuthService(users, fakePasswords);

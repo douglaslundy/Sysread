@@ -74,7 +74,7 @@
     "name": "Nome",
     "email": "E-mail",
     "password": "Senha",
-    "passwordHint": "Mínimo de 12 caracteres.",
+    "passwordHint": "Mínimo de 6 caracteres.",
     "submitLogin": "Entrar",
     "submitRegister": "Criar conta",
     "account": "Conta",
@@ -357,5 +357,46 @@
     "play": "Tocar",
     "pause": "Pausar",
     "blocked": "Pressione tocar novamente para permitir o áudio."
+  },
+  "Pomodoro": {
+    "title": "Timer Pomodoro",
+    "phase": {
+      "study": "Estudo",
+      "shortBreak": "Intervalo curto",
+      "longBreak": "Intervalo longo"
+    },
+    "status": {
+      "idle": "Não iniciado",
+      "running": "Em andamento",
+      "paused": "Pausado",
+      "awaiting": "Aguardando confirmação",
+      "completed": "Pomodoro concluído"
+    },
+    "remaining": "Tempo restante: {time}",
+    "block": "Bloco {current} de {total}",
+    "start": "Iniciar",
+    "pause": "Pausar",
+    "resume": "Continuar",
+    "restart": "Reiniciar",
+    "finish": "Encerrar",
+    "next": "Avançar etapa",
+    "confirm": "Confirmar",
+    "silence": "Silenciar",
+    "silenced": "Silenciado",
+    "expand": "Expandir Pomodoro",
+    "collapse": "Recolher Pomodoro",
+    "settings": "Configurar",
+    "stageEnded": "{phase} terminou. Confirme para continuar.",
+    "settingsTitle": "Configurações do Pomodoro",
+    "settingsDescription": "Defina a duração das etapas e a sequência de estudo.",
+    "settingsResetWarning": "Salvar estas configurações reiniciará o Pomodoro atual.",
+    "studyMinutes": "Estudo (minutos)",
+    "shortBreakMinutes": "Intervalo curto (minutos)",
+    "longBreakMinutes": "Intervalo longo (minutos)",
+    "totalBlocks": "Quantidade de blocos",
+    "longBreakEvery": "Intervalo longo após quantos blocos",
+    "soundEnabled": "Reproduzir alerta sonoro",
+    "save": "Salvar configurações",
+    "cancel": "Cancelar"
   }
 }

@@ -6,6 +6,7 @@ import { PwaRegister } from "@/components/pwa-register";
 import { getPlatformSettings } from "@/modules/admin/application/platform-settings";
 import { getCurrentUser } from "@/modules/auth/infrastructure/current-user";
 import { resolveTheme, themeCookieName } from "@/lib/theme";
+import { PomodoroWidget } from "@/modules/pomodoro/ui/pomodoro-widget";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -36,6 +37,7 @@ export default async function RootLayout({
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          <PomodoroWidget />
         </NextIntlClientProvider>
         <PwaRegister />
       </body>

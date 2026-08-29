@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { minimumPasswordLength } from "@/modules/auth/application/password-policy";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button, Skeleton, Tabs } from "@/components/ui";
@@ -219,7 +220,7 @@ function SecurityForm({
           <span>{t("currentPassword")}</span>
           <input
             autoComplete="current-password"
-            minLength={12}
+            minLength={minimumPasswordLength}
             name="currentPassword"
             required
             type="password"
@@ -229,7 +230,7 @@ function SecurityForm({
           <span>{t("newPassword")}</span>
           <input
             autoComplete="new-password"
-            minLength={12}
+            minLength={minimumPasswordLength}
             name="newPassword"
             required
             type="password"
