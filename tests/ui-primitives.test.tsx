@@ -162,6 +162,20 @@ describe("accessible UI primitives", () => {
     expect(onDismiss).toHaveBeenCalledWith("saved");
   });
 
+  it("renders the modal in a portal so filtered ancestors cannot trap it", () => {
+    render(
+      <div style={{ backdropFilter: "blur(12px)" }}>
+        <Modal onClose={() => {}} open title="Portaled">
+          Content
+        </Modal>
+      </div>,
+    );
+
+    const backdrop = screen.getByRole("dialog", { name: "Portaled" })
+      .closest(".ui-modal-backdrop");
+    expect(backdrop?.parentElement).toBe(document.body);
+  });
+
   it("closes a modal when its backdrop is pressed", () => {
     const onClose = vi.fn();
     render(
